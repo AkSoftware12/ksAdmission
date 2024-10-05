@@ -1,2 +1,0 @@
-# ksAdmission
-quiz paper
