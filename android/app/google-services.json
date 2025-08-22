@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "810800089497",
+    "firebase_url": "https://ka-admission-default-rtdb.firebaseio.com",
+    "project_id": "ka-admission",
+    "storage_bucket": "ka-admission.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:810800089497:android:4bbd3ee7b9cde99891ab08",
+        "android_client_info": {
+          "package_name": "com.ksadmission"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAX1mM7hNa8FlFFhac3oyaVk41z9FZlgtY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

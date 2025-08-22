@@ -1,0 +1,31 @@
+import 'dart:ui';
+import 'package:flutter/material.dart';
+
+import '../HexColorCode/HexColor.dart';
+
+String logo='assets/sk_logo.png';
+String logo2='assets/logo2.png';
+String exam='assets/exam.gif';
+String newexam='assets/newexam.gif';
+String ksAdmission='assets/ks_admission.gif';
+String rupee='assets/rupees_icon.png';
+String questions='assets/questions.png';
+String character='assets/character.png';
+String podium='assets/podium.png';
+String share='assets/share.png';
+String menupro='assets/menu_pro.png';
+String social='assets/social.png';
+String rotate='assets/rotate.png';
+String logoutImage='assets/logout.png';
+String bell='assets/bell.png';
+String insurance='assets/insurance.png';
+String basic='assets/basic.png';
+String setting='assets/setting.png';
+String playstore='assets/app.png';
+String help='assets/help.png';
+String doubt='assets/doubt.png';
+String changePass='assets/change_password.png';
+String checklist='assets/checklist.png';
+String download='assets/download.gif';
+String faqs='assets/faq.png';
+String user='https://img.freepik.com/free-photo/free-photo-flowers-blossom-floral-bouquet-decoration-colorful-beautiful-background-garden-flowers-plant-pattern_1340-26141.jpg?t=st=1726812376~exp=1726815976~hmac=fd5d0e41fd47fac1eb710e4890b72526c10af8f4c0a53da57511e3c81d190afb&w=740';
