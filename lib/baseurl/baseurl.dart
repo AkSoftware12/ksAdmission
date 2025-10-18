@@ -1,8 +1,8 @@
 var baseUrl = "https://apiweb.ksadmission.in/api/";
 var baseUrlImage = "https://apiweb.ksadmission.in";
 
-// var baseUrlImage = "http://192.168.1.9/ksquiz/";
-// var baseUrl = "http://192.168.1.9/ksquiz/api/";
+// var baseUrlImage = "http://192.168.1.8/ksquiz/";
+// var baseUrl = "http://192.168.1.8/ksquiz/api/";
 
 
 

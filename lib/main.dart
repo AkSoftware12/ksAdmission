@@ -16,6 +16,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:stream_chat_localizations/stream_chat_localizations.dart';
 import 'package:upgrader/upgrader.dart';
 import 'DarkMode/dark_mode.dart';
 import 'DashBoardTeacher/home_bootom_teacher.dart';
@@ -69,6 +71,8 @@ Future main() async {
         : null,
   ) : await Firebase.initializeApp();
 
+
+
   // Lock orientation to portrait mode
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -91,6 +95,7 @@ class MyApp extends StatelessWidget {
   final RouteObserver<PageRoute> _routeObserver = RouteObserver();
 
    MyApp({super.key,});
+
   @override
   Widget build(BuildContext context) {
     // SystemChrome.setSystemUIOverlayStyle(

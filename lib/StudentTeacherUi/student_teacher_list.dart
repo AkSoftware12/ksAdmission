@@ -36,30 +36,41 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
   }
 
   Future<void> hitTeacherList() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString(
-      'token',
-    );
-    final response = await http.get(
-      Uri.parse("${teacherList}"),
-      headers: {
-        'Authorization': 'Bearer $token', // Include your token here
-      },
-    );
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-
-      if (responseData.containsKey('data')) {
-        setState(() {
-          teachersList = responseData['data'];
-          print('List :-  $teachersList');
-        });
-      } else {
-        throw Exception('Invalid API response: Missing "category" key');
+      if (token == null || token.isEmpty) {
+        throw Exception("Token not found. Please login again.");
       }
-    } else {
-      throw Exception('Failed to load data');
+
+      final response = await http.get(
+        Uri.parse(teacherList), // teacherList should be a valid URL string
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json', // ensure JSON response
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+
+        if (responseData.containsKey('data')) {
+          setState(() {
+            teachersList = responseData['data'];
+          });
+          print('List :- $teachersList');
+        } else {
+          throw Exception('Invalid API response: Missing "data" key');
+        }
+      } else {
+        // Debug response if not 200
+        print("API Error: ${response.statusCode} - ${response.body}");
+        throw Exception('Failed to load data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Error in hitTeacherList: $e");
+      rethrow; // optionally handle with UI error message
     }
   }
 

@@ -317,6 +317,7 @@ class _LoginPageState extends State<LoginPage> {
           await prefs.setString('token', token);
           await prefs.setString('id', Userid);
           await prefs.setString('data', User1);
+          print('User List$User1');
 
           User? user = await _authService.signIn(
             responseData['data']['email'].toString(),

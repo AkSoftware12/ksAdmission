@@ -114,6 +114,11 @@ dependencies:
 #  google_sign_in: ^7.1.0
 
 
+  stream_chat_flutter: ^9.16.0
+  stream_chat_localizations: ^9.16.0
+  responsive_builder: ^0.7.1
+
+
 
 
 
