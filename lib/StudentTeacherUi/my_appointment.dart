@@ -127,6 +127,8 @@ class _HistoryAppointmentScreenState extends State<HistoryAppointmentScreen> {
   }
 
   Future<void> hitBookingList() async {
+    setState(() => isLoading = true); // ✅ start loading
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
     try {
@@ -139,7 +141,9 @@ class _HistoryAppointmentScreenState extends State<HistoryAppointmentScreen> {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData.containsKey('bookings')) {
           setState(() {
-            bookingList = responseData['bookings'];
+            // bookingList = responseData['bookings'];
+            bookingList = (responseData['bookings'] ?? []) as List<dynamic>;
+
             print('List :- $bookingList');
           });
         } else {
@@ -152,55 +156,100 @@ class _HistoryAppointmentScreenState extends State<HistoryAppointmentScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading bookings: $e')),
       );
+    }finally {
+      if (mounted) setState(() => isLoading = false); // ✅ stop loading
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Wrap the scaffold in StreamChat if client is initialized
-    return client == null
-        ? const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    )
-        : StreamChat(
-      client: client,
-      child: Scaffold(
-        backgroundColor: primaryColor,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(65),
-          child: AppBar(
-            elevation: 4,
-            centerTitle: true,
-            iconTheme: const IconThemeData(color: Colors.white),
-            title: Text(
-              "My Appointment",
-              style: GoogleFonts.poppins(
-                textStyle: const TextStyle(
-                  fontSize: 22,
+
+  // ✅ No Data Premium Card
+  Widget _noDataCard() {
+    return Center(
+      child: Card(
+        elevation: 8,
+        margin: const EdgeInsets.symmetric(horizontal: 18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.person_off, color: Colors.white, size: 44),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "No Appointment Found",
+                style: TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-            ),
-            flexibleSpace: Container(
-              height: 100,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [homepageColor, primaryColor],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+              const SizedBox(height: 6),
+              const Text(
+                "Appointment list is currently empty.",
+                style: TextStyle(fontSize: 13, color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+
+              // ✅ optional retry button
+              InkWell(
+                onTap: hitBookingList,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.refresh, size: 18, color: Color(0xFF1E3C72)),
+                      SizedBox(width: 8),
+                      Text(
+                        "Retry",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E3C72),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
-            ),
+            ],
           ),
         ),
-        body: bookingList.isEmpty
-            ? const Center(
-          child: CircularProgressIndicator(color: Colors.blue),
-        )
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    // Wrap the scaffold in StreamChat if client is initialized
+    return StreamChat(
+      client: client,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+            : bookingList.isEmpty
+            ? _noDataCard() // ✅ empty state card
             : ListView.builder(
           padding: const EdgeInsets.all(5.0),
           itemCount: bookingList.length,
@@ -213,6 +262,7 @@ class _HistoryAppointmentScreenState extends State<HistoryAppointmentScreen> {
             );
           },
         ),
+
       ),
     );
   }

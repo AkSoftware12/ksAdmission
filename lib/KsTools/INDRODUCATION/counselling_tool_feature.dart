@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+// import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -43,7 +43,7 @@ class _FeatureToolsPageState extends State<FeatureToolsPage>
   var closeManually = false;
   var useRAnimation = true;
   var isDialOpen = ValueNotifier<bool>(false);
-  var speedDialDirection = SpeedDialDirection.up;
+  // var speedDialDirection = SpeedDialDirection.up;
   var buttonSize = const Size(56.0, 56.0);
   var childrenButtonSize = const Size(56.0, 56.0);
   var selectedfABLocation = FloatingActionButtonLocation.endDocked;

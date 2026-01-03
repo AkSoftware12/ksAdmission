@@ -459,8 +459,23 @@ class _DoubtSessionState extends State<DoubtSession> {
                   padding: const EdgeInsets.all(0.0),
                   child: GestureDetector(
                     onTap: (){
-                      _updateProfile(_image);
-                      messageController.clear();
+
+                      if(messageController.text.isEmpty){
+                        Fluttertoast.showToast(
+                          msg: "✍️ Please enter your message",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.CENTER,
+                          backgroundColor: Colors.red, // dark slate
+                          textColor: Colors.white,       // soft red
+                          fontSize: 16,
+                        );
+
+
+                      }else{
+                        _updateProfile(_image);
+                        messageController.clear();
+                      }
+
 
                     },
                     child: Row(

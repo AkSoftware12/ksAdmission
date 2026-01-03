@@ -17,6 +17,7 @@ import '../Download/download.dart';
 import '../FAQ/faq.dart';
 import '../FAQ/faq_tab.dart';
 import '../Help/help.dart';
+import '../HomeScreen/LiveClass/live_class_screen.dart';
 import '../HomeScreen/home_screen.dart';
 import '../Library/library.dart';
 import '../LoginPage/login_page.dart';
@@ -302,9 +303,16 @@ class _HomeBottomNavigationState extends State<Homepage> {
                   ),
                 ), // Ensure Scaffold is in context
               ),
-              title: Row(
+              title:
+
+
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Image.asset(
+                  //   'assets/kstextimag.png',
+                  //   height: 35.sp,
+                  // ),
                   Text.rich(
                     TextSpan(
                       text: '',
@@ -312,7 +320,7 @@ class _HomeBottomNavigationState extends State<Homepage> {
                       children: <TextSpan>[
                         TextSpan(
                           // text: '${nickname}',
-                          text: '${AppConstants.appName}',
+                          text: AppConstants.appName,
                           // text: '${'Ravi'}',
                           style: TextStyle(
                             fontSize: 16.sp,
@@ -334,7 +342,16 @@ class _HomeBottomNavigationState extends State<Homepage> {
                   builder: (context) => Padding(
                     padding: EdgeInsets.all(8.sp),
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                LiveClassUserScreen(),
+                          ),
+                        );
+                      },
                       child: Icon(
                         Icons.live_tv,
                         color: Colors.white,
@@ -344,24 +361,24 @@ class _HomeBottomNavigationState extends State<Homepage> {
                   ), // Ensure Scaffold is in context
                 ),
 
-                Builder(
-                  builder: (context) => Padding(
-                    padding: EdgeInsets.all(8.sp),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return FaqTabScreen();
-                            },
-                          ),
-                        );
-                      },
-                      child: Icon(Icons.help, color: Colors.white, size: 22.sp),
-                    ),
-                  ), // Ensure Scaffold is in context
-                ),
+                // Builder(
+                //   builder: (context) => Padding(
+                //     padding: EdgeInsets.all(8.sp),
+                //     child: GestureDetector(
+                //       onTap: () {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) {
+                //               return FaqTabScreen();
+                //             },
+                //           ),
+                //         );
+                //       },
+                //       child: Icon(Icons.help, color: Colors.white, size: 22.sp),
+                //     ),
+                //   ), // Ensure Scaffold is in context
+                // ),
 
                 Padding(
                   padding: const EdgeInsets.only(right: 10.0),
@@ -1210,7 +1227,71 @@ class _NotificationListState extends State<NotificationList> {
       appBar: AppBar(
         backgroundColor: primaryColor,
         iconTheme: IconThemeData(color: Colors.white),
-        title: Text('Notifications', style: TextStyle(color: Colors.white)),
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF010071), // deep blue
+                Color(0xFF0A1AFF), // royal blue
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+        ),
+        title: Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  size: 25,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Notifications",
+            style: GoogleFonts.poppins(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            "Stay updated with latest alerts",
+            style: GoogleFonts.poppins(
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w400,
+              color: Colors.white70,
+            ),
+          ),
+        ],
+      ),
+          ],
+        ),
+
       ),
       body: Center(child: Image.asset('assets/notification.png')),
     );

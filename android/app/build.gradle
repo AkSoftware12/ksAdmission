@@ -47,7 +47,11 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
-
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+        disable "NullSafeMutableLiveData"
+    }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).

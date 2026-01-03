@@ -9,6 +9,7 @@ import 'package:realestate/Utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
 import '../baseurl/baseurl.dart';
 
@@ -55,7 +56,6 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
   String cityState = '';
   String pin = '';
 
-
   bool visiblity = false;
   String promocode = '';
 
@@ -83,17 +83,22 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
 
   String _selectedPayment = 'Wallet'; // Default selected payment method
 
-
   /// Generates a list of days for the selected month, including only 2 days before today
   List<DateTime> getFilteredMonthDays(DateTime month) {
     int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     List<DateTime> allDays = List.generate(
-        daysInMonth, (index) => DateTime(month.year, month.month, index + 1));
+      daysInMonth,
+      (index) => DateTime(month.year, month.month, index + 1),
+    );
 
     // Filter: Show only 2 days before today and the rest of the month
-    return allDays.where((date) =>
-    date.isAfter(DateTime.now().subtract(Duration(days: 1))) ||
-        date.isAtSameMomentAs(DateTime.now())).toList();
+    return allDays
+        .where(
+          (date) =>
+              date.isAfter(DateTime.now().subtract(Duration(days: 1))) ||
+              date.isAtSameMomentAs(DateTime.now()),
+        )
+        .toList();
   }
 
   /// Moves to the next month
@@ -108,12 +113,14 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     if (_selectedDate.month > _currentDate.month ||
         _selectedDate.year > _currentDate.year) {
       setState(() {
-        _selectedDate =
-            DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month - 1,
+          1,
+        );
       });
     }
   }
-
 
   final List<String> times = [
     "9:00 AM  To 9:15 AM",
@@ -141,18 +148,20 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     false,
     false,
     true,
-    false
+    false,
   ];
 
   List<dynamic> slot = [];
 
-// Function to format time
+  // Function to format time
   String formatTime(String time) {
     try {
-      final parsedTime = DateFormat("HH:mm").parse(
-          time); // Parse 24-hour format
-      return DateFormat("h:mm a").format(
-          parsedTime); // Convert to 12-hour format
+      final parsedTime = DateFormat(
+        "HH:mm",
+      ).parse(time); // Parse 24-hour format
+      return DateFormat(
+        "h:mm a",
+      ).format(parsedTime); // Convert to 12-hour format
     } catch (e) {
       return time; // Return original if parsing fails
     }
@@ -176,7 +185,6 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
 
   Future<void> hitTeacherList(dynamic date) async {
     try {
-
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
@@ -206,7 +214,8 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
             isLoading = false;
 
             print(
-                ' Slot Data : $slot'); // Ensure teachersList is properly defined
+              ' Slot Data : $slot',
+            ); // Ensure teachersList is properly defined
           });
         } else {
           throw Exception('Invalid API response: Missing "data" key');
@@ -218,7 +227,6 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
       print("Error fetching teacher list: $e");
     }
   }
-
 
   Future<void> hitSlotBook(BuildContext context, int? id) async {
     try {
@@ -260,7 +268,6 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
         hideLoadingDialog(context);
 
         _showPaymentSuccessDialog3(context);
-
       } else {
         // hideLoadingDialog(context);
         Navigator.pop(context);
@@ -273,9 +280,9 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
       print("Error booking slot: $e");
 
       // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
@@ -304,11 +311,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 20),
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: Colors.white,
-                  size: 80,
-                ),
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 80),
                 const SizedBox(height: 10),
                 Text(
                   'Booking  Successful',
@@ -324,10 +327,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                   child: Text(
                     'Your solt has been booked successfully!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -338,7 +338,10 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30.0),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 10,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.pop(context);
@@ -346,10 +349,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                   },
                   child: const Text(
                     'OK',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -365,438 +365,922 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
   Widget build(BuildContext context) {
     List<DateTime> monthDays = getFilteredMonthDays(_selectedDate);
     String monthName = DateFormat.yMMMM().format(
-        _selectedDate); // Example: "February 2025"
+      _selectedDate,
+    ); // Example: "February 2025"
     return Scaffold(
-      backgroundColor: Colors.green.shade100,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(59),
-        child: Column(
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF010071), Color(0xFF0A1AFF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+        ),
+        title: Row(
           children: [
-            AppBar(
-              elevation: 4,
-              centerTitle: true,
-              iconTheme: IconThemeData(color: Colors.white),
-              title: Text(
-                "Appointment ",
-                style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  size: 25,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Appointment',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
-              ),
-              flexibleSpace: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [homepageColor, primaryColor],
-                    begin: Alignment.topCenter,
-                    // Horizontal gradient starts from left
-                    end: Alignment.bottomCenter,
+                Text(
+                  'Booking details & information',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white70,
                   ),
                 ),
-              ),
-              actions: [
-                // Container(
-                //   margin: EdgeInsets.only(right: 10),
-                //   decoration: BoxDecoration(
-                //     color: Colors.white.withOpacity(0.2),
-                //     shape: BoxShape.circle,
-                //   ),
-                //   child: IconButton(
-                //     icon: Icon(Icons.search, color: Colors.white),
-                //     onPressed: () {
-                //       // Future search functionality
-                //     },
-                //   ),
-                // ),
               ],
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                BorderRadius.vertical(bottom: Radius.circular(15)),
-              ),
-            ),
-            Container(
-              height: 0,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.black, homepageColor],
-                ),
-              ),
             ),
           ],
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_none_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationList()),
+                );
+              },
+            ),
+          ),
+        ],
       ),
-      body: Center(
+
+      body: Padding(
+        padding:  EdgeInsets.only(bottom: 60.sp),
+        child: SingleChildScrollView(
           child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Card(
-                  margin: EdgeInsets.symmetric(vertical: 0),
-                  color: Colors.green.shade100,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0),
-                  ),
-                  elevation: 5,
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: GestureDetector(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 5.h, horizontal: 5.h),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: HexColor('#3A33FF'),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Material(
+                    color: Colors.white,
+                    child: InkWell(
                       onTap: () {},
                       child: Stack(
                         children: [
-                          Column(
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      widget.data['picture_data'].toString(),
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error,
-                                          stackTrace) {
-                                        return Image.asset(
-                                          'assets/teacher_user.jpg',
-                                          // Ensure this image exists in your assets folder
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        );
-                                      },
-                                    ),
-                                  ),
-
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              widget.data['name'],
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w900,
-                                              ),
-                                            ),
-                                            SizedBox(width: 5),
-                                          ],
-                                        ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          widget.data['subject_special'] ??
-                                              'N/A',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.blueGrey,
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-
-                                        Text(
-                                          widget.data['language'] ?? 'N/A',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.blueGrey,
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          widget.data['qualification'] ?? 'N/A',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.blueGrey,
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-
+                          // Top gradient strip (premium feel)
                           Positioned(
                             top: 0,
+                            left: 0,
                             right: 0,
                             child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8,
-                                  vertical: 5),
+                              height: 48.h,
                               decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.star,
-                                      color: Colors.amber,
-                                      size: 15),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    // teacher.rating.toString(),
-                                    widget.data['avg_rating'].toString() ??
-                                        'N/A',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.topRight,
+                                  colors: [
+                                    Color(0xFF1F14E1),
+                                    Color(0xFFC8177B), // Soft Purple Blue
+                                    // HexColor('#3A33FF'),
+                                    // HexColor('#3A33FF'),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
 
+                          Padding(
+                            padding: EdgeInsets.all(5.w),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 6.h),
+
+                                // Header Row
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Avatar with border glow
+                                    Column(
+                                      children: [
+                                        Container(
+                                          width: 80.sp,
+                                          height: 80.sp,
+                                          padding: EdgeInsets.all(2.2.w),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              14.r,
+                                            ),
+                                            color: Colors.grey.withOpacity(0.35),
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12.r,
+                                            ),
+                                            child: Image.network(
+                                              widget.data['picture_data']
+                                                  .toString(),
+                                              width: 60.sp,
+                                              height: 60.sp,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) {
+                                                return Image.network(
+                                                  'https://i.postimg.cc/HjjPV3YB/Screenshot-2026-01-02-103653-removebg-preview.png',
+                                                  width: 60.sp,
+                                                  height: 60.sp,
+                                                  fit: BoxFit.cover,
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 5),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 10.w,
+                                            vertical: 0.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: HexColor(
+                                              '#010071',
+                                            ).withOpacity(0.7),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.white.withOpacity(
+                                                0.18,
+                                              ),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.star_rounded,
+                                                color: Colors.amber,
+                                                size: 10.sp,
+                                              ),
+                                              SizedBox(width: 4.w),
+                                              Text(
+                                                widget.data['avg_rating']
+                                                    .toString(),
+                                                style: GoogleFonts.poppins(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 8.sp,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    SizedBox(width: 10.w),
+
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Name + chips
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  widget.data['name'],
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 13.sp,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 8.w),
+                                              _chip(
+                                                icon: Icons.translate_rounded,
+                                                text:
+                                                    widget.data['language'] ??
+                                                    'N/A',
+                                                bg: Colors.white.withOpacity(
+                                                  0.18,
+                                                ),
+                                                fg: Colors.white,
+                                              ),
+                                            ],
+                                          ),
+
+                                          SizedBox(height: 20.h),
+
+                                          // Qualification
+                                          Row(
+                                            children: [
+                                              // 🎓 Qualification
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8.w,
+                                                  vertical: 4.h,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: HexColor(
+                                                    '#010071',
+                                                  ).withOpacity(0.08),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: HexColor(
+                                                      '#010071',
+                                                    ).withOpacity(0.25),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.school_rounded,
+                                                      size: 13.sp,
+                                                      color: HexColor('#010071'),
+                                                    ),
+                                                    SizedBox(width: 4.w),
+                                                    Text(
+                                                      widget.data['qualification'] ??
+                                                          'N/A',
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize: 10.5.sp,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: HexColor(
+                                                          '#010071',
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+                                              SizedBox(width: 8.w),
+
+                                              // 📘 Subject Specialization
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8.w,
+                                                  vertical: 4.h,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: HexColor(
+                                                    '#010071',
+                                                  ).withOpacity(0.08),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: HexColor(
+                                                      '#010071',
+                                                    ).withOpacity(0.25),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.menu_book_rounded,
+                                                      size: 13.sp,
+                                                      color: HexColor('#010071'),
+                                                    ),
+                                                    SizedBox(width: 4.w),
+                                                    Text(
+                                                      widget.data['subject_special'] ??
+                                                          'N/A',
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize: 10.5.sp,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: HexColor(
+                                                          '#010071',
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          SizedBox(height: 5.h),
+
+                                          // Bio (on white area)
+                                          Container(
+                                            width: double.infinity,
+                                            padding: EdgeInsets.all(5.w),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF6F7FB),
+                                              borderRadius: BorderRadius.circular(
+                                                10.r,
+                                              ),
+                                              border: Border.all(
+                                                color: Colors.black.withOpacity(
+                                                  0.06,
+                                                ),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              widget.data['bio'] ?? 'N/A',
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 10.sp,
+                                                fontWeight: FontWeight.w400,
+                                                color: Colors.blueGrey.shade700,
+                                                height: 1.25,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                SizedBox(height: 12.h),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
+              ),
+              SizedBox(height: 5),
+
+              Container(
+                color: HexColor('#90D5FF'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // ✅ Title
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text('Select Date',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: homepageColor
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  HexColor('#010071').withOpacity(0.18),
+                                  HexColor('#010071').withOpacity(0.06),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: homepageColor.withOpacity(0.18),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withOpacity(0.18),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
                             ),
-                          )
-                        ],
-                      ),
-                      Card(
-                        elevation: 2,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            // Show back arrow only if the user is ahead of the current month
-                            if (_selectedDate.month > _currentDate.month ||
-                                _selectedDate.year > _currentDate.year)
-                              IconButton(icon: Icon(Icons.arrow_back_ios,
-                                size: 20,), onPressed: _previousMonth)
-                            else
-                              SizedBox(width: 8),
-                            // Placeholder for spacing
-
-                            Text(monthName, style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold)),
-
-                            IconButton(icon: Icon(
-                              Icons.arrow_forward_ios_outlined, size: 20,),
-                                onPressed: _nextMonth),
-                          ],
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ),
-
-
-                /// **Month Selector**
-
-                /// **Horizontal Month Calendar**
-                SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: monthDays.length,
-                    itemBuilder: (context, index) {
-                      final DateTime currentDate = DateTime.now();
-                      final DateTime date = monthDays[index];
-
-                      final bool isPastDate = date.isBefore(DateTime(
-                          currentDate.year, currentDate.month,
-                          currentDate.day));
-                      final bool isCurrentDate = date.day == currentDate.day &&
-                          date.month == currentDate.month &&
-                          date.year == currentDate.year;
-                      final bool isSelected = date.day == _selectedDate.day &&
-                          date.month == _selectedDate.month &&
-                          date.year == _selectedDate.year;
-
-                      Color getColor() {
-                        if (isCurrentDate) return Colors.blue;
-                        if (isSelected) return Colors.green;
-                        if (isPastDate) return Colors.red;
-                        return Colors.grey[200]!;
-                      }
-
-                      return GestureDetector(
-                        onTap: isPastDate
-                            ? null
-                            : () {
-                          setState(() {
-                            _selectedDate = date;
-                            hitTeacherList(widget.data['id']);
-                            selectedTimeIndex=-1;
-
-                          });
-                        },
-                        child: Container(
-                          width: 80,
-                          margin: EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: getColor(),
-                            borderRadius: BorderRadius.circular(10),
+                            child: Icon(
+                              Icons.calendar_month_rounded,
+                              size: 22,
+                              color: HexColor('#010071'),
+                            ),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                DateFormat.E().format(date),
-                                // Short day name (Mon, Tue)
+                                'Select Date',
                                 style: TextStyle(
                                   fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-
-                                  color: isCurrentDate || isSelected ||
-                                      isPastDate ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.w800,
+                                  color: HexColor('#010071'),
+                                  letterSpacing: 0.2,
                                 ),
                               ),
-                              SizedBox(height: 5),
+                              const SizedBox(height: 2),
                               Text(
-                                date.day.toString(), // Day number
+                                'Choose your preferred day',
                                 style: TextStyle(
-                                  fontSize: 23,
-                                  fontWeight: FontWeight.bold,
-                                  color: isCurrentDate || isSelected ||
-                                      isPastDate ? Colors.white : Colors.black,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: HexColor('#010071'),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text('Select Time',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: homepageColor
-                            ),
-                          ),
-
                         ],
                       ),
 
-                    ],
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
+                      // ✅ Month Switcher (Premium Card)
                       Container(
-                        width: 12.sp,
-                        height: 12.sp,
-                        color: Colors.grey,
-                      ),
-                      Text(' Not Available',
-                        style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w500,
-                            color: homepageColor
-                        ),
-                      ),
-                      SizedBox(width: 10.sp,),
-
-                      Container(
-                        width: 12.sp,
-                        height: 12.sp,
-                        color: Colors.redAccent.shade100,
-                      ),
-                      Text(' Slot Booked',
-                        style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w500,
-                            color: homepageColor
-                        ),
-                      ),
-
-                      SizedBox(width: 10.sp,),
-
-                      Container(
-                        width: 12.sp,
-                        height: 12.sp,
-                        color: Colors.white,
-                      ),
-                      Text(' Available',
-                        style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w500,
-                            color: homepageColor
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-
-                isLoading
-                    ? Container(
-                    height: 300.sp,
-                    child: Center(
-                        child: CircularProgressIndicator())) // Show loading indicator
-                    : slot.isEmpty
-                    ? Container(
-                    height: 300.sp,
-                    child: Center(
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              // width: 120,
-                                height: 180,
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.asset(
-                                        'assets/NO_SLOT_AVAILABLE_IMG.png'))),
-                            SizedBox(height: 10,),
-                            // Text("No Slots Available", style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.95),
+                              Colors.white.withOpacity(0.75),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 18,
+                              offset: const Offset(0, 10),
+                            ),
                           ],
-                        )))
-                    : Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      height: 300.sp,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 6,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // ✅ Back arrow only if ahead of current month (same logic)
+                            if (_selectedDate.month > _currentDate.month ||
+                                _selectedDate.year > _currentDate.year)
+                              InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: _previousMonth,
+                                child: Container(
+                                  height: 36,
+                                  width: 36,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey.shade200,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                    size: 16,
+                                    color: HexColor('#010071'),
+                                  ),
+                                ),
+                              )
+                            else
+                              const SizedBox(width: 0),
+
+                            const SizedBox(width: 8),
+
+                            // ✅ Month Chip
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    homepageColor.withOpacity(0.14),
+                                    homepageColor.withOpacity(0.06),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: homepageColor.withOpacity(0.18),
+                                ),
+                              ),
+                              child: Text(
+                                monthName,
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: HexColor('#010071'),
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            // ✅ Next arrow
+                            InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: _nextMonth,
+                              child: Container(
+                                height: 36,
+                                width: 36,
+                                decoration: BoxDecoration(
+                                  color: homepageColor.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: homepageColor.withOpacity(0.18),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 16,
+                                  color: HexColor('#010071'),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 5),
+
+              /// **Horizontal Month Calendar**
+              SizedBox(
+                height: 130,
+                // color: Colors.white,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: monthDays.length,
+                  itemBuilder: (context, index) {
+                    final DateTime currentDate = DateTime.now();
+                    final DateTime date = monthDays[index];
+
+                    final bool isPastDate = date.isBefore(
+                      DateTime(
+                        currentDate.year,
+                        currentDate.month,
+                        currentDate.day,
+                      ),
+                    );
+                    final bool isCurrentDate =
+                        date.day == currentDate.day &&
+                        date.month == currentDate.month &&
+                        date.year == currentDate.year;
+                    final bool isSelected =
+                        date.day == _selectedDate.day &&
+                        date.month == _selectedDate.month &&
+                        date.year == _selectedDate.year;
+
+                    Gradient getGradient() {
+                      if (isCurrentDate) {
+                        return const LinearGradient(
+                          colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        );
+                      }
+                      if (isSelected) {
+                        return const LinearGradient(
+                          colors: [Color(0xFF010071), Color(0xFF0A1AFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        );
+                      }
+                      if (isPastDate) {
+                        return const LinearGradient(
+                          colors: [Color(0xFFE53935), Color(0xFFEF5350)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        );
+                      }
+                      return const LinearGradient(
+                        colors: [Color(0xFFF5F7FA), Color(0xFFE4E7EB)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      );
+                    }
+
+                    return GestureDetector(
+                      onTap: isPastDate
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedDate = date;
+                                hitTeacherList(widget.data['id']);
+                                selectedTimeIndex = -1;
+                              });
+                            },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 85,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: getGradient(),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: isSelected ? Colors.white : Colors.white,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            if (isCurrentDate || isSelected)
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              )
+                            else
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                          ],
+                        ),
+                        child: Opacity(
+                          opacity: isPastDate ? 0.6 : 1,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                DateFormat.E().format(date), // Mon, Tue
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: isCurrentDate || isSelected || isPastDate
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                date.day.toString(),
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: isCurrentDate || isSelected || isPastDate
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                              if (isCurrentDate)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.25),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Text(
+                                      "Today",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // ✅ Premium "Select Time" header + legend UI (same content, only UI upgrade)
+              Container(
+                color: HexColor('#B3EBF2'),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      homepageColor.withOpacity(0.15),
+                                      homepageColor.withOpacity(0.05),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: homepageColor.withOpacity(0.18),
+                                    width: 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.06),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.access_time_rounded,
+                                  size: 18.sp,
+                                  color: homepageColor,
+                                ),
+                              ),
+                              SizedBox(width: 10.sp),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Select Time',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w800,
+                                      color: homepageColor,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.sp),
+                                  Text(
+                                    'Choose your slot',
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: homepageColor.withOpacity(0.65),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: homepageColor.withOpacity(0.12),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 10,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _legendChip(
+                              color: Colors.grey.shade400,
+                              label: 'Not Available',
+                              textColor: homepageColor,
+                            ),
+                            _legendChip(
+                              color: Colors.redAccent.shade100,
+                              label: 'Slot Booked',
+                              textColor: homepageColor,
+                            ),
+                            _legendChip(
+                              color: Colors.white,
+                              label: 'Available',
+                              textColor: homepageColor,
+                              borderColor: Colors.grey.shade300,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              isLoading
+                  ? Container(
+                      height: 200.sp,
+                      child: Center(child: CircularProgressIndicator()),
+                    ) // Show loading indicator
+                  : slot.isEmpty
+                  ? Center(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 30),
+
+                          SizedBox(
+                            // width: 120,
+                            height: 150,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.asset(
+                                'assets/NO_SLOT_AVAILABLE_IMG.png',
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          // Text("No Slots Available", style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: SingleChildScrollView(
                         child: Wrap(
                           spacing: 12,
                           runSpacing: 12,
                           children: List.generate(slot.length, (index) {
                             return GestureDetector(
-                              onTap: slot[index]['is_booked'] != null && slot[index]['is_booked'] != 0
+                              onTap:
+                              slot[index]['is_booked'] != null &&
+                                  slot[index]['is_booked'] != 0
                                   ? null
                                   : () {
                                 setState(() {
@@ -805,8 +1289,10 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                                 });
                               },
                               child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 12,
-                                    horizontal: 5),
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 5,
+                                ),
                                 decoration: BoxDecoration(
                                   color: slot[index]['is_booked'] == 1
                                       ? Colors.red.shade100
@@ -818,9 +1304,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  '${formatTime(
-                                      slot[index]['start_time'])} To ${formatTime(
-                                      slot[index]['end_time'])}',
+                                  '${formatTime(slot[index]['start_time'])} To ${formatTime(slot[index]['end_time'])}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: slot[index]['is_booked'] == 1
@@ -837,80 +1321,189 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                           }),
                         ),
                       ),
-                    )
-
-                ),
-
-
-              ])),
-
-      bottomSheet: Container(
-        height: 70,
-        color: Colors.green.shade100,
-        child: Center(
-          child: ElevatedButton(
-            onPressed: () {
-              if (selectedSlotId != null)
-
-                setState(() {
-                  // subsid = planlist[i].planId.toString();
-                  planId = selectedSlotId.toString();
-                  price = '50';
-                  type =  '';
-                });
-
-              print(' Tpye : $type');
-
-
-              _showPaymentBottomSheet('50');
-
-
-              // hitSlotBook(context, selectedSlotId);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: homepageColor, // Added button color
-            ),
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Pay ', // Price text
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
                     ),
-                  ),
-                  WidgetSpan(
-                    child: Icon(
-                      Icons.currency_rupee, // Rupee icon
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                  TextSpan(
-                    text: '50', // Price text
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  // TextSpan(
-                  //   text: '\nper session', // Price text
-                  //   style: TextStyle(
-                  //     fontSize: 9,
-                  //     fontWeight: FontWeight.bold,
-                  //     color: Colors.green.shade900,
-                  //   ),
-                  // ),
-                ],
-              ),
-            ),
+            ],
           ),
         ),
-
       ),
+
+      bottomSheet: slot.isNotEmpty ?SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF010071),
+                Color(0xFF0A1AFF),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 18,
+                offset: const Offset(0, -6),
+              ),
+            ],
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(22),
+              topRight: Radius.circular(22),
+            ),
+            border: Border(
+              top: BorderSide(color: Colors.white.withOpacity(0.12)),
+            ),
+          ),
+          child: Row(
+            children: [
+              // Left: price/label (optional premium touch)
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Total Pay",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.75),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: const [
+                        Icon(Icons.currency_rupee, size: 18, color: Colors.white),
+                        SizedBox(width: 2),
+                        Text(
+                          "50",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Right: premium gradient button
+              SizedBox(
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (selectedSlotId != null) {
+                      setState(() {
+                        planId = selectedSlotId.toString();
+                        price = '50';
+                        type = '';
+                      });
+                    }
+                    print(' Tpye : $type');
+                    _showPaymentBottomSheet('50');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(
+                        colors: [
+                          homepageColor, // your main button color
+                          homepageColor.withOpacity(0.75),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: homepageColor.withOpacity(0.45),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                      border: Border.all(color: Colors.white.withOpacity(0.14)),
+                    ),
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.lock_rounded, size: 18, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            "Pay Now",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ):null
+    );
+  }
+
+  // ✅ Paste this helper widget in same file (below build or in utils)
+  Widget _legendChip({
+    required Color color,
+    required String label,
+    required Color textColor,
+    Color? borderColor,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12.sp,
+          height: 12.sp,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: borderColor ?? Colors.transparent,
+              width: borderColor == null ? 0 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 7.sp),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5.sp,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+      ],
     );
   }
 
@@ -943,21 +1536,38 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                     child: Container(
                       padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                        color: _selectedPayment == "Wallet" ? Colors.blue.shade50 : Colors.white,
+                        color: _selectedPayment == "Wallet"
+                            ? Colors.blue.shade50
+                            : Colors.white,
                         border: Border.all(
-                          color: _selectedPayment == "Wallet" ? Colors.blue : Colors.grey.shade300,
+                          color: _selectedPayment == "Wallet"
+                              ? Colors.blue
+                              : Colors.grey.shade300,
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.account_balance_wallet, color: Colors.blue, size: 28),
-                          SizedBox(width: 15),
-                          Expanded(child: Text("Wallet", style: TextStyle(fontSize: 16))),
                           Icon(
-                            _selectedPayment == "Wallet" ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                            color: _selectedPayment == "Wallet" ? Colors.blue : Colors.grey,
+                            Icons.account_balance_wallet,
+                            color: Colors.blue,
+                            size: 28,
+                          ),
+                          SizedBox(width: 15),
+                          Expanded(
+                            child: Text(
+                              "Wallet",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          Icon(
+                            _selectedPayment == "Wallet"
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
+                            color: _selectedPayment == "Wallet"
+                                ? Colors.blue
+                                : Colors.grey,
                           ),
                         ],
                       ),
@@ -973,9 +1583,13 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                     child: Container(
                       padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                        color: _selectedPayment == "Razorpay" ? Colors.green.shade50 : Colors.white,
+                        color: _selectedPayment == "Razorpay"
+                            ? Colors.green.shade50
+                            : Colors.white,
                         border: Border.all(
-                          color: _selectedPayment == "Razorpay" ? Colors.green : Colors.grey.shade300,
+                          color: _selectedPayment == "Razorpay"
+                              ? Colors.green
+                              : Colors.grey.shade300,
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -984,10 +1598,19 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                         children: [
                           Icon(Icons.payment, color: Colors.green, size: 28),
                           SizedBox(width: 15),
-                          Expanded(child: Text("Razorpay", style: TextStyle(fontSize: 16))),
+                          Expanded(
+                            child: Text(
+                              "Razorpay",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
                           Icon(
-                            _selectedPayment == "Razorpay" ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                            color: _selectedPayment == "Razorpay" ? Colors.green : Colors.grey,
+                            _selectedPayment == "Razorpay"
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
+                            color: _selectedPayment == "Razorpay"
+                                ? Colors.green
+                                : Colors.grey,
                           ),
                         ],
                       ),
@@ -1006,12 +1629,18 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 50),
                       padding: EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       backgroundColor: homepageColor,
                     ),
                     child: Text(
                       "Confirm Payment",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -1023,15 +1652,50 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     );
   }
 
-  void _handlePaymentSelection() {
+  Widget _chip({
+    required IconData icon,
+    required String text,
+    required Color bg,
+    required Color fg,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12.sp, color: fg),
+          SizedBox(width: 5.w),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 90.w),
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 9.5.sp,
+                fontWeight: FontWeight.w500,
+                color: fg,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if(_selectedPayment=='Wallet'){
+  void _handlePaymentSelection() {
+    if (_selectedPayment == 'Wallet') {
       walletBalancePayApi(price);
-    }else{
+    } else {
       ordersCreateApi(price);
     }
-
   }
+
   void showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -1043,13 +1707,14 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
             children: const [
               CircularProgressIndicator(),
               SizedBox(height: 20),
-              Text("Please wait...")
+              Text("Please wait..."),
             ],
           ),
         );
       },
     );
   }
+
   void hideLoadingDialog(BuildContext context) {
     Navigator.of(context, rootNavigator: true).pop();
   }
@@ -1058,10 +1723,12 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
 
-    final Uri uri = Uri.parse(payWalletBalance); // Replace with your actual API URL
+    final Uri uri = Uri.parse(
+      payWalletBalance,
+    ); // Replace with your actual API URL
     final Map<String, String> headers = {
       'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
 
     final Map<String, dynamic> body = {'amount': amount};
@@ -1082,33 +1749,32 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
 
             // createPlan();
           });
-
         } else {
           hideLoadingDialog(context);
-
-
         }
       } else {
         hideLoadingDialog(context);
 
         Fluttertoast.showToast(
           msg: "Insufficient Balance",
-          toastLength: Toast.LENGTH_LONG,  // or Toast.LENGTH_LONG
-          gravity: ToastGravity.BOTTOM,     // Position: TOP, CENTER, BOTTOM
+          toastLength: Toast.LENGTH_LONG,
+          // or Toast.LENGTH_LONG
+          gravity: ToastGravity.BOTTOM,
+          // Position: TOP, CENTER, BOTTOM
           backgroundColor: Colors.redAccent,
           textColor: Colors.white,
           fontSize: 16.0,
         );
         // _showInsufficientBalanceDialog(context);
-
-
       }
     } catch (e) {
       hideLoadingDialog(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Network Error: $e"),
-        backgroundColor: Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Network Error: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -1121,9 +1787,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: primaryColor,
-              ),
+              CircularProgressIndicator(color: primaryColor),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),
             ],
@@ -1133,8 +1797,8 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     );
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? userId = prefs.getString('id',);
-    final String? token = prefs.getString('token',);
+    final String? userId = prefs.getString('id');
+    final String? token = prefs.getString('token');
 
     Map<String, dynamic> responseData = {
       "plan_id": planId,
@@ -1157,15 +1821,11 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
         print("Data sent successfully: ${response.body}");
         final Map<String, dynamic> jsonData = json.decode(response.body);
 
-        if(type=='6'){
+        if (type == '6') {
           _showPaymentSuccessDialog2(context);
-
-        }else{
+        } else {
           _showPaymentSuccessDialog(context);
-
         }
-
-
 
         // Navigator.push(
         //   context,
@@ -1184,8 +1844,6 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     }
   }
 
-
-
   void _showPaymentSuccessDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -1201,11 +1859,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
-              Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 60,
-              ),
+              Icon(Icons.check_circle, color: Colors.green, size: 60),
               SizedBox(height: 10),
               Text(
                 'Your payment has been processed successfully!',
@@ -1219,11 +1873,10 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Homepage(
-                      initialIndex: 0,
-                    ),
+                    builder: (context) => Homepage(initialIndex: 0),
                   ),
-                );              },
+                );
+              },
               child: const Text('OK'),
             ),
           ],
@@ -1246,12 +1899,8 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children:  [
-              Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 60,
-              ),
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 60),
               SizedBox(height: 10),
               Text(
                 'Your payment has been  successfully! Plan  will  be Active with in 24 Hours ',
@@ -1266,11 +1915,10 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Homepage(
-                      initialIndex: 0,
-                    ),
+                    builder: (context) => Homepage(initialIndex: 0),
                   ),
-                );              },
+                );
+              },
               child: const Text('OK'),
             ),
           ],
@@ -1309,12 +1957,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
         setState(() {
           razorpayOrderId = jsonData['data']['id'].toString();
 
-          openCheckout(
-            razorpayKeyId,
-            double.parse(price) * 100,
-          );
-
-
+          openCheckout(razorpayKeyId, double.parse(price) * 100);
         });
         print("Order Created: $razorpayOrderId");
       } else {
@@ -1326,11 +1969,10 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
       throw Exception('An error occurred while creating the order');
     }
   }
+
   Future<void> razorpayKeyData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString(
-      'token',
-    );
+    final String? token = prefs.getString('token');
     final Uri uri = Uri.parse(razorpayKayId);
     final Map<String, String> headers = {'Authorization': 'Bearer $token'};
     final response = await http.get(uri, headers: headers);
@@ -1345,9 +1987,6 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
       throw Exception('Failed to load profile data');
     }
   }
-
-
-
 
   void openCheckout(keyRazorPay, amount) async {
     razorPay(keyRazorPay, amount);
@@ -1379,9 +2018,19 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
 
     // SubscriptionAPI();
 
-
-
-    StorePaymnet('${price}',orderId,paymentId,currency,status,signature,paymentMethod,txnDate,null,'',null,);
+    StorePaymnet(
+      '${price}',
+      orderId,
+      paymentId,
+      currency,
+      status,
+      signature,
+      paymentMethod,
+      txnDate,
+      null,
+      '',
+      null,
+    );
 
     print(response);
   }
@@ -1401,7 +2050,19 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     String paymentMethod = "UPI"; // Example
     String txnDate = DateTime.now().toString();
 
-    StorePaymnet('${price}',orderId,paymentId,currency,status,signature,paymentMethod,txnDate,response.code,response.message,response.error);
+    StorePaymnet(
+      '${price}',
+      orderId,
+      paymentId,
+      currency,
+      status,
+      signature,
+      paymentMethod,
+      txnDate,
+      response.code,
+      response.message,
+      response.error,
+    );
 
     Fluttertoast.showToast(msg: "ERROR: " + response.message.toString());
   }
@@ -1410,20 +2071,19 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     Fluttertoast.showToast(msg: "ERROR: " + response.toString());
   }
 
-
   Future<void> StorePaymnet(
-      String price,
-      String orderId,
-      String paymentId,
-      String currency,
-      String status,
-      String signature,
-      String paymentMethod,
-      String txnDate,
-      int? errorCode,
-      String? errorDescription,
-      Map<dynamic, dynamic>? failureReason,
-      ) async {
+    String price,
+    String orderId,
+    String paymentId,
+    String currency,
+    String status,
+    String signature,
+    String paymentMethod,
+    String txnDate,
+    int? errorCode,
+    String? errorDescription,
+    Map<dynamic, dynamic>? failureReason,
+  ) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1432,9 +2092,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: primaryColor,
-              ),
+              CircularProgressIndicator(color: primaryColor),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),
             ],
@@ -1444,12 +2102,8 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
     );
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? userId = prefs.getString(
-      'id',
-    );
-    final String? token = prefs.getString(
-      'token',
-    );
+    final String? userId = prefs.getString('id');
+    final String? token = prefs.getString('token');
 
     Map<String, dynamic> responseData = {
       "order_id": orderId,
@@ -1482,8 +2136,6 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
         // createPlan();
 
         hitSlotBook(context, selectedSlotId);
-
-
       } else {
         Navigator.pop(context);
         _showPaymentFailedDialog(context);
@@ -1509,25 +2161,22 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
         'name': '${nickname}',
         'order_id': '${razorpayOrderId}',
         'description': 'Subscription',
-        'prefill': {
-          'contact': '${contact}',
-          'email': '${userEmail}'
-        },
+        'prefill': {'contact': '${contact}', 'email': '${userEmail}'},
         'external': {
-          'wallets': ['paytm']
-        }
+          'wallets': ['paytm'],
+        },
       };
 
       try {
         _razorpay.open(options);
         hideLoadingDialog(context); // Dialog Band Karega
-
       } catch (e) {
         debugPrint(e.toString());
       }
     });
   }
-  void _showPaymentFailedDialog(BuildContext context,) {
+
+  void _showPaymentFailedDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1535,23 +2184,20 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
-          title:  Text(
+          title: Text(
             '${'Payment Failed'}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children:  [
-
+            children: [
               Center(
                 child: SizedBox(
-                    height: 120,
-                    width: double.infinity,
-                    child: Image.asset('assets/payment failed.png')),
+                  height: 120,
+                  width: double.infinity,
+                  child: Image.asset('assets/payment failed.png'),
+                ),
               ),
-
-
-
 
               SizedBox(height: 10),
               Text(
@@ -1572,11 +2218,4 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
       },
     );
   }
-
 }
-
-
-
-
-
-

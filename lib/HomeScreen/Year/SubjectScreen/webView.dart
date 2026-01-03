@@ -210,6 +210,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:realestate/Utils/app_colors.dart';
+import 'package:realestate/Utils/color.dart';
 import 'package:secure_content/secure_content.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../CommonCalling/data_not_found.dart';
@@ -436,15 +438,17 @@ class _HomePage extends State<PdfViewerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: HexColor('#0e4ccc'),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: HexColor('#0e4ccc'),
+        iconTheme:IconThemeData(color: Colors.white),
         title: Text(
           widget.title,
           style: GoogleFonts.radioCanada(
             textStyle: TextStyle(
-              fontSize: 11.sp,
+              fontSize: 13.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
         ),
@@ -452,7 +456,7 @@ class _HomePage extends State<PdfViewerPage> {
           IconButton(
             icon: const Icon(
               Icons.bookmark,
-              color: Colors.black,
+              color: Colors.white,
               semanticLabel: 'Bookmark',
             ),
             onPressed: () {
@@ -485,7 +489,7 @@ class _HomePage extends State<PdfViewerPage> {
             );
           }
         },
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: HexColor('#0e4ccc'),
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
             : _isDownloaded

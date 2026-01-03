@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  audioplayers_windows
   cloud_firestore
   connectivity_plus
   desktop_drop
@@ -18,11 +17,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   printing
   record_windows
   share_plus
-  sqlite3_flutter_libs
   syncfusion_pdfviewer_windows
   thumblr_windows
   url_launcher_windows
-  volume_controller
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

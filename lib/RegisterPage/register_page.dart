@@ -46,6 +46,7 @@ class _RegisterPageState extends State<RegisterPage>
   final _focusNode = FocusNode();
 
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController referralController = TextEditingController();
 
   final TextEditingController emailController = TextEditingController();
 
@@ -121,6 +122,7 @@ class _RegisterPageState extends State<RegisterPage>
 
         Map<String, dynamic> requestBody = {
           'name': nameController.text,
+          'ref_id': referralController.text,
           'email': emailController.text,
           'contact': phoneController.text,
           'password': passwordController.text,
@@ -2170,6 +2172,125 @@ class _RegisterPageState extends State<RegisterPage>
                               ],
                             ),
 
+                            SizedBox(
+                              height: 20.sp,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Referral Code ",
+                                  style: GoogleFonts.poppins(
+                                    textStyle: TextStyle(
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black),
+                                  ),
+                                ),
+                                Text('')
+                              ],
+                            ),
+                            SizedBox(height: 10.sp),
+                            Stack(
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  height: 50.sp,
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 2,
+                                        blurRadius: 7,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        left: 10,
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 50.sp,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                            BorderRadius.circular(10.0),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.orange
+                                                    .withOpacity(0.5),
+                                                spreadRadius: 2,
+                                                blurRadius: 7,
+                                                offset: Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                  EdgeInsets.only(left: 8.0, right: 8.sp),
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 50.sp,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 2,
+                                          blurRadius: 7,
+                                          offset: Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Flexible(
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 8.0),
+                                            child: TextFormField(
+                                              controller: referralController,
+                                              keyboardType: TextInputType.name,
+                                              style: GoogleFonts.poppins(
+                                                textStyle: TextStyle(
+                                                    fontSize: 15.sp,
+                                                    fontWeight:
+                                                    FontWeight.normal,
+                                                    color: Colors.black),
+                                              ),
+                                              decoration: InputDecoration(
+                                                hintText: 'Enter Referral Code',
+                                                border: InputBorder.none,
+                                                prefixIcon: Icon(
+                                                    Icons.card_giftcard,
+                                                    color: Colors.black),
+                                              ),
+                                              textInputAction:
+
+                                              TextInputAction.next,
+                                              // This sets the keyboard action to "Next"
+                                              onEditingComplete: () =>
+                                                  FocusScope.of(context)
+                                                      .nextFocus(),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
 
                             SizedBox(
                               height: 10.sp,

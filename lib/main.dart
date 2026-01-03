@@ -53,7 +53,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future main() async {
   HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
-  await Upgrader.clearSavedSettings();
+  // await Upgrader.clearSavedSettings();
   // setUpLocator();
   // Gemini.init(
   //   apiKey: 'AIzaSyAeiY-nqd8-gmnBHoyK3RVthCahU2rFvmw',
@@ -365,9 +365,9 @@ class NotificationService {
     if (message.notification?.title == 'Video Call') {
       _openCallScreen();
     } else {
-      navigatorKey.currentState?.push(
-        MaterialPageRoute(builder: (context) => NotificationScreen()),
-      );
+      // navigatorKey.currentState?.push(
+      //   MaterialPageRoute(builder: (context) => NotificationScreen()),
+      // );
     }
   }
 

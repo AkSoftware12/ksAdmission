@@ -74,7 +74,16 @@ class _NotesGridTabState extends State<DoubtList> {
                         itemCount: doubtlist.length,
                         itemBuilder: (context, index) {
                           return GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DoubtDetailScreen(
+                                          data: doubtlist[index]),
+                                ),
+                              );
+                            },
                             child: Stack(
                               children: [
                                 Padding(
@@ -86,12 +95,41 @@ class _NotesGridTabState extends State<DoubtList> {
                                             BorderRadius.circular(10.sp)),
                                     child: ListTile(
                                       leading: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10.sp),
-                                          child: Image.network(doubtlist[index]
-                                                      ['category']['picture_urls']
-                                                  ['image']
-                                              .toString())),
+                                        borderRadius: BorderRadius.circular(10.sp),
+                                        child: Image.network(
+                                          doubtlist[index]['category']['picture_urls']['image'].toString(),
+                                          width: 50.w,
+                                          height: 50.w,
+                                          fit: BoxFit.cover,
+
+                                          // 🔹 Jab image load ho rahi ho
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Container(
+                                              width: 50.w,
+                                              height: 50.w,
+                                              alignment: Alignment.center,
+                                              child: const CircularProgressIndicator(strokeWidth: 2),
+                                            );
+                                          },
+
+                                          // 🔹 Jab image na aaye / error ho
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              width: 50.w,
+                                              height: 50.w,
+                                              color: Colors.grey.shade200,
+                                              alignment: Alignment.center,
+                                              child: Icon(
+                                                Icons.image_not_supported,
+                                                size: 26.sp,
+                                                color: Colors.grey,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+
                                       title: Text(
                                         doubtlist[index]['subject']['name']
                                             .toString(),

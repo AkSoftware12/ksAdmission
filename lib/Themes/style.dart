@@ -11,7 +11,7 @@ final ThemeData appTheme = ThemeData(
   primaryColor: kMainColor,
   dividerColor: Color(0x1f000000),
   disabledColor: kDisabledColor,
-  bottomAppBarTheme: BottomAppBarTheme(color: kMainColor),
+  bottomAppBarTheme: BottomAppBarThemeData(color: kMainColor),
   buttonTheme: ButtonThemeData(
     textTheme: ButtonTextTheme.normal,
     height: 33,

@@ -1356,12 +1356,12 @@ Widget build(BuildContext context) {
                     ),
                     centerTitle: true,
                     actions: [
-                      IconButton(
-                        icon: Icon(Icons.info_outline, color: Colors.white, size: 20.sp),
-                        onPressed: () {
-                          // Add info action
-                        },
-                      ),
+                      // IconButton(
+                      //   icon: Icon(Icons.info_outline, color: Colors.white, size: 20.sp),
+                      //   onPressed: () {
+                      //     // Add info action
+                      //   },
+                      // ),
                     ],
                   ),
                 ),

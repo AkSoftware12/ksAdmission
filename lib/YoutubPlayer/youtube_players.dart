@@ -43,6 +43,8 @@ class _VideoPlayerYoutubeState extends State<VideoPlayer> {
       ),
     );
       // ..addListener(_trackVideoTime);
+
+    print(widget.url);
   }
 
 

@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Calender/calender.dart';
 import '../CollegeStateList/college_state_list.dart';
+import '../FreeSectionScreen/free_content_main.dart';
 import '../HexColorCode/HexColor.dart';
 import '../KsTools/INDRODUCATION/counselling_tool_feature.dart';
 import '../NewExam/NewExamMockTest/new_exam_mock_test_list.dart';
@@ -210,6 +211,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           dailyQuizs = responseData['quizzes'];
           classCategorie = responseData['classCategories'];
           print(classCategorie);
+          print('Banner $banner');
 
           videoUrls = responseData['video'];
           if (videoUrls.isNotEmpty) {
@@ -693,6 +695,72 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             'assets/addmission_tools.jpg',
                             fit: BoxFit.fill,
                             height: 170.sp,
+                            width: double.infinity,
+                          ),
+                        ),
+                      ),
+                    ),
+
+
+
+
+
+                    // Ks Demo Section
+                    Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Container(
+                        // color: greenColorQ,
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Row(
+                            children: [
+                              Card(
+                                // elevation: 5,
+                                color: Colors.pink,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    5.0,
+                                  ), // 5 logical pixels radius
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(3.sp),
+                                  child: Text(
+                                    'Free Section',
+                                    style: GoogleFonts.roboto(
+                                      textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return FreeContentPage();
+                              },
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset(
+                            'assets/ksdemosection.png',
+                            fit: BoxFit.cover,
+                            height: 120.sp,
                             width: double.infinity,
                           ),
                         ),
@@ -2189,84 +2257,84 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 200.sp,
-                            child:
-                                videoUrls.isEmpty ||
-                                    _controller == null ||
-                                    !_controller!.value.isInitialized
-                                ? Center(child: CircularProgressIndicator())
-                                : Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      AspectRatio(
-                                        aspectRatio:
-                                            _controller!.value.aspectRatio,
-                                        child: VideoPlayer(_controller!),
-                                      ),
-                                      Positioned(
-                                        // bottom: 50,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 18.0,
-                                              ),
-                                              child: GestureDetector(
-                                                onTap: playPreviousVideo,
-                                                child: Icon(
-                                                  Icons.skip_previous,
-                                                  color: Colors.black,
-                                                  size: 40,
-                                                ),
-                                              ),
-                                            ),
-
-                                            SizedBox(width: 10),
-                                            SizedBox(width: 10),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                right: 18.0,
-                                              ),
-                                              child: GestureDetector(
-                                                onTap: playNextVideo,
-                                                child: Icon(
-                                                  Icons.skip_next,
-                                                  color: Colors.black,
-                                                  size: 40,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 10,
-                                        right: 10,
-                                        child: IconButton(
-                                          icon: Icon(
-                                            isMuted
-                                                ? Icons.volume_off
-                                                : Icons.volume_up,
-                                            color: Colors.black,
-                                            size: 30,
-                                          ),
-                                          onPressed: toggleMute,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // video
+                    // Padding(
+                    //   padding: const EdgeInsets.only(top: 8.0),
+                    //   child: Column(
+                    //     children: [
+                    //       Container(
+                    //         height: 200.sp,
+                    //         child:
+                    //             videoUrls.isEmpty ||
+                    //                 _controller == null ||
+                    //                 !_controller!.value.isInitialized
+                    //             ? Center(child: CircularProgressIndicator())
+                    //             : Stack(
+                    //                 alignment: Alignment.center,
+                    //                 children: [
+                    //                   AspectRatio(
+                    //                     aspectRatio:
+                    //                         _controller!.value.aspectRatio,
+                    //                     child: VideoPlayer(_controller!),
+                    //                   ),
+                    //                   Positioned(
+                    //                     // bottom: 50,
+                    //                     child: Row(
+                    //                       mainAxisAlignment:
+                    //                           MainAxisAlignment.spaceBetween,
+                    //                       children: [
+                    //                         Padding(
+                    //                           padding: const EdgeInsets.only(
+                    //                             left: 18.0,
+                    //                           ),
+                    //                           child: GestureDetector(
+                    //                             onTap: playPreviousVideo,
+                    //                             child: Icon(
+                    //                               Icons.skip_previous,
+                    //                               color: Colors.black,
+                    //                               size: 40,
+                    //                             ),
+                    //                           ),
+                    //                         ),
+                    //
+                    //                         SizedBox(width: 10),
+                    //                         SizedBox(width: 10),
+                    //                         Padding(
+                    //                           padding: const EdgeInsets.only(
+                    //                             right: 18.0,
+                    //                           ),
+                    //                           child: GestureDetector(
+                    //                             onTap: playNextVideo,
+                    //                             child: Icon(
+                    //                               Icons.skip_next,
+                    //                               color: Colors.black,
+                    //                               size: 40,
+                    //                             ),
+                    //                           ),
+                    //                         ),
+                    //                       ],
+                    //                     ),
+                    //                   ),
+                    //                   Positioned(
+                    //                     top: 10,
+                    //                     right: 10,
+                    //                     child: IconButton(
+                    //                       icon: Icon(
+                    //                         isMuted
+                    //                             ? Icons.volume_off
+                    //                             : Icons.volume_up,
+                    //                         color: Colors.black,
+                    //                         size: 30,
+                    //                       ),
+                    //                       onPressed: toggleMute,
+                    //                     ),
+                    //                   ),
+                    //                 ],
+                    //               ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
 
                     Padding(
                       padding: EdgeInsets.all(5.sp),

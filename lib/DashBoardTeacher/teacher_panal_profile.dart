@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../HomeScreen/Year/SubjectScreen/webView.dart';
 import '../baseurl/baseurl.dart';
 
 class ProfileTeacherScreen extends StatefulWidget {
@@ -100,99 +101,129 @@ class _TeacherProfileScreenState extends State<ProfileTeacherScreen> {
       elevation: 5,
       child: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Row(
+        child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: '$photoUrl',
-                width: MediaQuery.of(context).size.width*0.2,
-                height: MediaQuery.of(context).size.height*0.1,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => CircularProgressIndicator(),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey,
-                  // Placeholder color
-                  // You can customize the default image as needed
-                  child: Icon(
-                    Icons.image,
-                    color: Colors.white,
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: CachedNetworkImage(
+                    imageUrl: photoUrl,
+                    width: MediaQuery.of(context).size.width*0.2,
+                    height: MediaQuery.of(context).size.height*0.1,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey,
+                      // Placeholder color
+                      // You can customize the default image as needed
+                      child: Icon(
+                        Icons.image,
+                        color: Colors.white,
+                      ),
+                    )
                   ),
-                )
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      nickname,
-                      style: GoogleFonts.poppins(
-                          fontSize: 16.sp, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      userEmail,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blueGrey),
-                    ),
-                    Text(
-                      qualification,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blueGrey),
-                    ),
-                    const SizedBox(height: 8), // Space between text and buttons
-                    Row(
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            // Handle edit profile action
-                          },
-                          icon: Icon(Icons.edit, size: 12.sp),
-                          label: Text("Edit Profile",style: TextStyle(fontSize: MediaQuery.of(context).size.width*0.03),),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
+                        Text(
+                          nickname,
+                          style: GoogleFonts.poppins(
+                              fontSize: 16.sp, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            // Handle wallet action
-                          },
-                          icon: Icon(Icons.account_balance_wallet, size: 12.sp),
-                          label: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text("Wallet",style: TextStyle(fontSize: MediaQuery.of(context).size.width*0.03)),
-                              SizedBox(width: 8), // Space between text and price
-                              Row(
-                                children: [
-                                  Icon(Icons.currency_rupee, size: 12.sp),
-                                  Text("100.00", style: TextStyle(fontWeight: FontWeight.bold,fontSize: MediaQuery.of(context).size.width*0.03)),
-                                ],
-                              ), // Price
-                            ],
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                          ),
+                        Text(
+                          userEmail,
+                          style: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blueGrey),
                         ),
-
-                        const SizedBox(width: 8),
-
+                        Text(
+                          qualification,
+                          style: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blueGrey),
+                        ),
+                        const SizedBox(height: 8), // Space between text and buttons
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+
+              ],
             ),
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Handle edit profile action
+                  },
+                  icon: Icon(Icons.edit, size: 12.sp),
+                  label: Text("Edit Profile",style: TextStyle(fontSize: MediaQuery.of(context).size.width*0.03),),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Handle wallet action
+                  },
+                  icon: Icon(Icons.account_balance_wallet, size: 12.sp),
+                  label: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Wallet",style: TextStyle(fontSize: MediaQuery.of(context).size.width*0.03)),
+                      SizedBox(width: 8), // Space between text and price
+                      Row(
+                        children: [
+                          Icon(Icons.currency_rupee, size: 12.sp),
+                          Text("100.00", style: TextStyle(fontWeight: FontWeight.bold,fontSize: MediaQuery.of(context).size.width*0.03)),
+                        ],
+                      ), // Price
+                    ],
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PdfViewerPage(
+                          url: 'https://apiweb.ksadmission.in/upload/banners/pdf/1767180621_ks_am-compressed.pdf',
+                          title: 'All Teachers List',
+                          category: '',
+                          Subject: '',
+                        ),
+                      ),
+                    );
+
+                  },
+                  icon: Icon(Icons.person, size: 12.sp),
+                  label: Text("All Teachers", style: TextStyle(fontWeight: FontWeight.bold,fontSize: MediaQuery.of(context).size.width*0.03)),
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+
+
+              ],
+            ),
+
           ],
         ),
       ),
