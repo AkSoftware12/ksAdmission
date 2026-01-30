@@ -12,7 +12,9 @@ import '../student_teacher_list.dart';
 // import '../../Utils/app_colors.dart';
 
 class OnlineDashBoard extends StatefulWidget {
-  const OnlineDashBoard({super.key});
+  final bool isLocked;
+
+  const OnlineDashBoard({super.key, required this.isLocked});
 
   @override
   State<OnlineDashBoard> createState() => _YearpageState();
@@ -23,11 +25,11 @@ class _YearpageState extends State<OnlineDashBoard> {
 
   final List<int> _tabHistory = [0]; // ✅ start tab
 
-  final List<String> _titles = ["Teachers", "Live Class", "History"];
+  final List<String> _titles = ["Teachers", "Live Class", "Schedule History"];
   final List<String> _subTitles = [
     "Find your teachers 👨‍🏫",
     "Join your live class 🔴",
-    "See your history 📚",
+    "See your schedule history 📚",
   ];
 
 
@@ -68,7 +70,7 @@ class _YearpageState extends State<OnlineDashBoard> {
       case 0:
         return TeacherListScreen();
       case 1:
-        return LiveClassScreen();
+        return LiveClassScreen(isLocked: widget.isLocked,);
       case 2:
         return HistoryAppointmentScreen();
       default:

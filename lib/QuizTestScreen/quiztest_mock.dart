@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:realestate/QuizTestScreen/quizResultPage.dart';
 import 'package:secure_content/secure_content.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../CommonCalling/progressbarWhite.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
@@ -307,9 +308,8 @@ class _QuizScreenState extends State<MockQuizScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: primaryColor),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+              PrimaryCircularProgressWidget(),
+
             ],
           ),
         );

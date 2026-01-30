@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../Utils/app_colors.dart';
 import '../../Utils/textSize.dart';
+import '../CommonCalling/progressbarPrimari.dart';
+import '../HomePage/home_page.dart';
 
 class CollegeDetailScreen extends StatelessWidget {
   final String state;
@@ -16,18 +18,106 @@ class CollegeDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text(
-          'Universities Detail'.toUpperCase(),
-          style: GoogleFonts.poppins(
-            textStyle: TextStyle(
-                fontSize: TextSizes.textmedium,
-                fontWeight: FontWeight.normal,
-                color: Colors.white),
+        elevation: 0,
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF010071),
+                Color(0xFF0A1AFF),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
         ),
+        title: Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: (){
+                Navigator.of(context).pop();
+
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.arrow_back, size: 25, color: Colors.white),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Universities Detail'.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Everything you need to choose the right university",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            )
+
+
+          ],
+
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_none_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationList()),
+                );
+              },
+            ),
+          ),
+        ],
+
       ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,13 +131,13 @@ class CollegeDetailScreen extends StatelessWidget {
                 width: double.infinity,
                 fit: BoxFit.cover,
                 placeholder: (context, url) =>
-                    Center(child: CircularProgressIndicator()),
+                    Center(child: PrimaryCircularProgressWidget()),
                 // Loading indicator
                 errorWidget: (context, url, error) => SizedBox(
                   height: 200,
                   width: double.infinity,
                   child: Image.asset(
-                    'assets/No_Image_Available.jpg',
+                    'assets/no_image.jpg',
                     fit: BoxFit.fill,
                   ),
                 ),
@@ -132,7 +222,7 @@ class CollegeDetailScreen extends StatelessWidget {
                   Container(
                     width: double.infinity,
 
-                    color: Colors.green.shade50,
+                    color: Colors.blue.shade100,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: SingleChildScrollView(
@@ -165,7 +255,7 @@ class CollegeDetailScreen extends StatelessWidget {
                 children: [
                   Container(
                     width: double.infinity,
-                    color: Colors.green.shade50,
+                    color: Colors.blue.shade100,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: SingleChildScrollView(
@@ -196,7 +286,7 @@ class CollegeDetailScreen extends StatelessWidget {
                   Container(
                     width: double.infinity,
 
-                    color: Colors.green.shade50,
+                    color: Colors.blue.shade100,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: SingleChildScrollView(

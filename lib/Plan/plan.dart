@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:realestate/CommonCalling/progressbarPrimari.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -20,6 +23,7 @@ import '../baseurl/baseurl.dart';
 
 class PlanScreen extends StatefulWidget {
   final String appBar;
+
   const PlanScreen({super.key, required this.appBar});
 
   @override
@@ -37,7 +41,7 @@ class _PlanScreenState extends State<PlanScreen> {
   double totalAmount = 0.0;
   double newtotalAmount = 0.0;
   dynamic currency = '';
-  String _selectedPayment = 'Wallet'; // Default selected payment method
+  String _selectedPayment = 'Razorpay'; // Default selected payment method
 
   Set<String> selectedVendorIds = {};
   bool visiblity = false;
@@ -68,6 +72,9 @@ class _PlanScreenState extends State<PlanScreen> {
 
   List<dynamic> allPlan = [];
 
+  // ✅ FIX: loader stuck / double dialog prevent
+  bool _isLoadingDialogShowing = false;
+
   @override
   void initState() {
     super.initState();
@@ -97,9 +104,9 @@ class _PlanScreenState extends State<PlanScreen> {
         throw Exception('Token not found!');
       }
 
-      final Uri uri = Uri.parse(plan).replace(queryParameters: {
-        'user_id': userId?.toString(),
-      });
+      final Uri uri = Uri.parse(
+        plan,
+      ).replace(queryParameters: {'user_id': userId?.toString()});
 
       final response = await http.get(
         uri,
@@ -176,7 +183,9 @@ class _PlanScreenState extends State<PlanScreen> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         setState(() {
-          razorpayKeyId = jsonData['razor_pay_id'].toString();
+          razorpayKeyId = jsonData['razor_pay_company_id'].toString();
+          print('razorPayId$razorpayKeyId');
+          // razorpayKeyId = jsonData['razor_pay_id'].toString();
         });
       } else {
         throw Exception('Failed to load Razorpay key');
@@ -210,7 +219,7 @@ class _PlanScreenState extends State<PlanScreen> {
       };
 
       final response = await http.post(
-        Uri.parse(ordersIdRazorpay),
+        Uri.parse(ordersCompanyIdRazorpay),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -222,8 +231,13 @@ class _PlanScreenState extends State<PlanScreen> {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         setState(() {
           razorpayOrderId = jsonData['data']['id'].toString();
-          openCheckout(razorpayKeyId, double.parse(price) * 100);
+          print('razorPayOrdersId$razorpayOrderId');
         });
+
+        // ✅ FIX: order create success pe loader close karo, phir checkout open
+        hideLoadingDialog(context);
+
+        openCheckout(razorpayKeyId, double.parse(price) * 100);
       } else {
         hideLoadingDialog(context);
         Fluttertoast.showToast(
@@ -328,6 +342,8 @@ class _PlanScreenState extends State<PlanScreen> {
       );
 
       if (response.statusCode == 200) {
+        // ✅ (optional) loader close safe - createPlan me again show hota hai
+        hideLoadingDialog(context);
         createPlan();
       } else {
         hideLoadingDialog(context);
@@ -361,6 +377,8 @@ class _PlanScreenState extends State<PlanScreen> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         if (jsonData['success'] == true) {
+          // ✅ loader close safe
+          hideLoadingDialog(context);
           createPlan();
         } else {
           hideLoadingDialog(context);
@@ -384,6 +402,7 @@ class _PlanScreenState extends State<PlanScreen> {
   }
 
   void openCheckout(keyRazorPay, amount) async {
+    // ❌ yaha timer/loader close ki need nahi, but aapka flow same rakh raha hu
     Timer(const Duration(seconds: 2), () async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var options = {
@@ -393,11 +412,15 @@ class _PlanScreenState extends State<PlanScreen> {
         'order_id': razorpayOrderId,
         'description': 'Subscription',
         'prefill': {'contact': contact, 'email': userEmail},
-        'external': {'wallets': ['paytm']}
+        'external': {
+          'wallets': ['paytm'],
+        },
       };
 
       try {
         _razorpay.open(options);
+
+        // ✅ FIX: agar loader open hai to close kar do (safety)
         hideLoadingDialog(context);
       } catch (e) {
         hideLoadingDialog(context);
@@ -414,6 +437,9 @@ class _PlanScreenState extends State<PlanScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    // ✅ FIX: safety - agar loader chal raha ho to band
+    hideLoadingDialog(context);
+
     String orderId = response.orderId ?? "";
     String paymentId = response.paymentId ?? "";
     String signature = response.signature ?? "";
@@ -438,6 +464,9 @@ class _PlanScreenState extends State<PlanScreen> {
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
+    // ✅ FIX: payment fail pe loader band zaroor hona chahiye
+    hideLoadingDialog(context);
+
     setState(() => showDialogBox = false);
     String orderId = '';
     String paymentId = '';
@@ -472,6 +501,9 @@ class _PlanScreenState extends State<PlanScreen> {
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
+    // ✅ FIX: external wallet pe bhi safety close
+    hideLoadingDialog(context);
+
     Fluttertoast.showToast(
       msg: "External Wallet: ${response.walletName}",
       toastLength: Toast.LENGTH_LONG,
@@ -487,7 +519,9 @@ class _PlanScreenState extends State<PlanScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sp)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.sp),
+          ),
           child: Padding(
             padding: EdgeInsets.all(20.sp),
             child: Column(
@@ -532,7 +566,10 @@ class _PlanScreenState extends State<PlanScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.sp),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 12.sp),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.sp,
+                      vertical: 12.sp,
+                    ),
                   ),
                   child: Text(
                     'OK',
@@ -558,7 +595,9 @@ class _PlanScreenState extends State<PlanScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sp)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.sp),
+          ),
           child: Padding(
             padding: EdgeInsets.all(20.sp),
             child: Column(
@@ -603,7 +642,10 @@ class _PlanScreenState extends State<PlanScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.sp),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 12.sp),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.sp,
+                      vertical: 12.sp,
+                    ),
                   ),
                   child: Text(
                     'OK',
@@ -629,14 +671,16 @@ class _PlanScreenState extends State<PlanScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sp)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.sp),
+          ),
           child: Padding(
             padding: EdgeInsets.all(20.sp),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/payment_failed.png',
+                  'assets/payment_failed.jpeg',
                   height: 80.sp,
                   width: 80.sp,
                   fit: BoxFit.contain,
@@ -671,7 +715,10 @@ class _PlanScreenState extends State<PlanScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.sp),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 12.sp),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.sp,
+                      vertical: 12.sp,
+                    ),
                   ),
                   child: Text(
                     'OK',
@@ -696,7 +743,9 @@ class _PlanScreenState extends State<PlanScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sp)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.sp),
+        ),
         child: Padding(
           padding: EdgeInsets.all(20.sp),
           child: Column(
@@ -719,10 +768,7 @@ class _PlanScreenState extends State<PlanScreen> {
                 "You do not have enough balance to complete this transaction. Please add funds.",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.radioCanada(
-                  textStyle: TextStyle(
-                    fontSize: 15.sp,
-                    color: Colors.black54,
-                  ),
+                  textStyle: TextStyle(fontSize: 15.sp, color: Colors.black54),
                 ),
               ),
               SizedBox(height: 20.sp),
@@ -752,7 +798,10 @@ class _PlanScreenState extends State<PlanScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.sp),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 12.sp),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.sp,
+                        vertical: 12.sp,
+                      ),
                     ),
                     child: Text(
                       "Add Funds",
@@ -777,33 +826,108 @@ class _PlanScreenState extends State<PlanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: homepageColor,
+      backgroundColor: widget.appBar.isEmpty ? homepageColor : Colors.white,
       appBar: widget.appBar.isEmpty
           ? null
           : AppBar(
-        backgroundColor: homepageColor,
         elevation: 0,
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(
-          "Subscription Plans",
-          style: GoogleFonts.radioCanada(
-            textStyle: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF010071),
+                Color(0xFF0A1AFF),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
         ),
-        centerTitle: true,
+        title: Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.arrow_back, size: 25, color: Colors.white),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Subscription Plans',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Choose the plan that fits you",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_none_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationList()),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       body: isDataLoading
           ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              color: primaryColor,
-              strokeWidth: 3,
+            CupertinoActivityIndicator(
+              radius: 25,
+              color: widget.appBar.isEmpty ? Colors.white : Colors.blue,
             ),
             SizedBox(height: 16.sp),
             Text(
@@ -819,245 +943,51 @@ class _PlanScreenState extends State<PlanScreen> {
         ),
       )
           : Column(
-          children: [
-      Expanded(
-      child: ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 8.sp),
-      itemCount: allPlan.length,
-      itemBuilder: (context, index) => Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.sp),
-        child: GestureDetector(
-            onTap: () {
-              // Add navigation or action if needed
-            },
-            child: Card(
-                elevation: 8,
-                shadowColor: Colors.black.withOpacity(0.2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.sp),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.white, Colors.grey.shade50],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16.sp),
-                    border: Border.all(
-                      color: HexColor('#E0E0E0'),
-                      width: 1.sp,
-                    ),
-                  ),
-                  child: Padding(
-                      padding: EdgeInsets.all(16.sp),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                        Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.sp),
-                                  child: Image.network(
-                                    allPlan[index]['image_url'].toString(),
-                                    height: 40.sp,
-                                    width: 40.sp,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Icon(
-                                      Icons.error,
-                                      color: Colors.red,
-                                      size: 40.sp,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 12.sp),
-                                Flexible(
-                                  child: Text(
-                                    '${allPlan[index]['category']['name']} ${allPlan[index]['name'].toUpperCase()}',
-                                    style: GoogleFonts.radioCanada(
-                                      textStyle: TextStyle(
-                                        fontSize: 18.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: HexColor(allPlan[index]['color'].toString()),
-                                      ),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (allPlan[index]['userPlanStatus'] == 'Active')
-                            Container(
-                              padding: EdgeInsets.all(6.sp),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.green,
-                              ),
-                              child: Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 20.sp,
-                              ),
-                            ),
-                        ],
-                      ),
-                      SizedBox(height: 16.sp),
-                      _buildFeatureRow(
-                        icon: Icons.check_circle,
-                        text: 'Mock Test',
-                        color: HexColor(allPlan[index]['color'].toString()),
-                      ),
-                      _buildFeatureRow(
-                          icon: Icons.check_circle,
-                          text: 'Test Series',
-                        color: HexColor(allPlan[index]['color'].toString()),
-                ),
-                _buildFeatureRow(
-                  icon: Icons.check_circle,
-                  text: 'Previous Paper',
-                  color: HexColor(allPlan[index]['color'].toString()),
-                ),
-                _buildFeatureRow(
-                  icon: Icons.check_circle,
-                  text: 'Duration: ${allPlan[index]['duration_in_days']} days',
-                  color: HexColor(allPlan[index]['color'].toString()),
-                ),
-                if (allPlan[index]['desc'] != null)
-            Padding(
-        padding: EdgeInsets.only(top: 8.sp),
-        child: Html(
-          data: allPlan[index]['desc'] ?? '',
-          style: {
-            'body': Style(
-              fontSize: FontSize(15.sp),
-              fontWeight: FontWeight.w500,
-              color: HexColor(allPlan[index]['color'].toString()),
-            ),
-          },
-        ),
-      ),
-      SizedBox(height: 16.sp),
-      Center(
-        child: Text(
-          '₹ ${(double.parse(allPlan[index]['price'].toString())).toStringAsFixed(2)}',
-          style: GoogleFonts.radioCanada(
-            textStyle: TextStyle(
-              fontSize: 28.sp,
-              fontWeight: FontWeight.bold,
-              color: HexColor(allPlan[index]['color'].toString()),
-            ),
-          ),
-        ),
-      ),
-      SizedBox(height: 16.sp),
-      Center(
-        child: _buildActionButton(index),
-      ),
-      ],
-    ),
-    ),
-    ),
-    ),
-    ),
-    ),
-    ),
-    ),
-    ],
-    ),
-    );
-  }
-
-  Widget _buildFeatureRow({required IconData icon, required String text, required Color color}) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.sp),
-      child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(4.sp),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-            ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 18.sp,
-            ),
-          ),
-          SizedBox(width: 12.sp),
           Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.radioCanada(
-                textStyle: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                  color: color,
-                ),
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(
+                horizontal: 5.sp,
+                vertical: 0.sp,
               ),
+              itemCount: allPlan.length,
+              itemBuilder: (context, index) {
+                final status = allPlan[index]['userPlanStatus'];
+
+                final isClickable = status == 'Inactive' || status == 'Expired';
+
+                String buttonText;
+                if (status == 'Inactive') {
+                  buttonText = 'Purchase';
+                } else if (status == 'Expired') {
+                  buttonText = 'Renew';
+                } else {
+                  buttonText = status; // Active
+                }
+
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.sp),
+                  child: PremiumPlanCard(
+                    plan: allPlan[index],
+                    buttonText: buttonText,
+                    isClickable: isClickable,
+                    onContinue: () {
+                      if (!isClickable) return;
+
+                      setState(() {
+                        planId = allPlan[index]['id'].toString();
+                        price = allPlan[index]['price'].toString();
+                        type = allPlan[index]['type'].toString();
+                      });
+
+                      _showPaymentBottomSheet(price);
+                    },
+                  ),
+                );
+              },
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(int index) {
-    final status = allPlan[index]['userPlanStatus'];
-
-    // Check whether the button should be clickable
-    final isClickable = status == 'Inactive' || status == 'Expired';
-
-    // Determine button text based on status
-    String buttonText;
-    if (status == 'Inactive') {
-      buttonText = 'Purchase';
-    } else if (status == 'Expired') {
-      buttonText = 'Renew';
-    } else {
-      buttonText = status; // e.g. 'Active'
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      height: 40.sp,
-      width: 150.sp,
-      child: GestureDetector(
-        onTap: isClickable
-            ? () {
-          setState(() {
-            planId = allPlan[index]['id'].toString();
-            price = allPlan[index]['price'].toString();
-            type = allPlan[index]['type'].toString();
-          });
-          _showPaymentBottomSheet(allPlan[index]['price'].toString());
-        }
-            : null,
-        child: Card(
-          elevation: 4,
-          color: HexColor(allPlan[index]['color'].toString()),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.sp),
-          ),
-          child: Center(
-            child: Text(
-              buttonText,
-              style: GoogleFonts.radioCanada(
-                textStyle: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -1088,13 +1018,6 @@ class _PlanScreenState extends State<PlanScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20.sp),
-                  _buildPaymentOption(
-                    icon: Icons.account_balance_wallet,
-                    title: "Wallet",
-                    isSelected: _selectedPayment == "Wallet",
-                    onTap: () => setState(() => _selectedPayment = "Wallet"),
-                  ),
                   SizedBox(height: 12.sp),
                   _buildPaymentOption(
                     icon: Icons.payment,
@@ -1106,7 +1029,8 @@ class _PlanScreenState extends State<PlanScreen> {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      showLoadingDialog(context);
+
+                      // ✅ FIX: yaha se showLoadingDialog hata diya (double dialog issue)
                       _handlePaymentSelection();
                     },
                     style: ElevatedButton.styleFrom(
@@ -1189,29 +1113,33 @@ class _PlanScreenState extends State<PlanScreen> {
   }
 
   void _handlePaymentSelection() {
-    if (_selectedPayment == 'Wallet') {
-      walletBalancePayApi(price);
-    } else {
-      ordersCreateApi(price);
-    }
+    ordersCreateApi(price);
+    // if (_selectedPayment == 'Wallet') {
+    //   walletBalancePayApi(price);
+    // } else {
+    //   ordersCreateApi(price);
+    // }
   }
 
+  // ✅ FIXED showLoadingDialog/hideLoadingDialog (no crash, no stuck)
   void showLoadingDialog(BuildContext context) {
+    if (_isLoadingDialogShowing) return; // ✅ prevent stacking
+    _isLoadingDialogShowing = true;
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sp)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.sp),
+          ),
           child: Padding(
             padding: EdgeInsets.all(20.sp),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(
-                  color: primaryColor,
-                  strokeWidth: 3,
-                ),
+                SizedBox(height: 30.sp, child: PrimaryCircularProgressWidget()),
                 SizedBox(width: 16.sp),
                 Text(
                   "Processing...",
@@ -1227,10 +1155,500 @@ class _PlanScreenState extends State<PlanScreen> {
           ),
         );
       },
-    );
+    ).then((_) {
+      _isLoadingDialogShowing = false;
+    });
   }
 
   void hideLoadingDialog(BuildContext context) {
-    Navigator.of(context, rootNavigator: true).pop();
+    if (!_isLoadingDialogShowing) return;
+
+    final nav = Navigator.of(context, rootNavigator: true);
+    if (nav.canPop()) nav.pop();
+
+    _isLoadingDialogShowing = false;
+  }
+}
+
+class PremiumPlanCard extends StatelessWidget {
+  final dynamic plan;
+  final VoidCallback onContinue;
+  final bool isClickable;
+  final String buttonText;
+
+  const PremiumPlanCard({
+    super.key,
+    required this.plan,
+    required this.onContinue,
+    required this.isClickable,
+    required this.buttonText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accent = HexColor(plan['color'].toString());
+    final String imageUrl = plan['image_url'].toString();
+    final String category = plan['category']['name'].toString();
+    final String planName = plan['name'].toString();
+    final String desc = (plan['desc'] ?? '').toString();
+    final String price = plan['price'].toString();
+
+    final bool isActive = plan['userPlanStatus'].toString() == "Active";
+
+    return Container(
+      margin: EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.sp),
+        border: Border.all(color: const Color(0xFF0A1AFF), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18.sp),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -60,
+              top: -60,
+              child: Container(
+                height: 170.sp,
+                width: 170.sp,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: accent.withOpacity(0.10),
+                ),
+              ),
+            ),
+            Positioned(
+              left: -70,
+              bottom: -70,
+              child: Container(
+                height: 190.sp,
+                width: 190.sp,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: accent.withOpacity(0.06),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(15.sp),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 54.sp,
+                        width: 54.sp,
+                        decoration: BoxDecoration(
+                          color: accent.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(16.sp),
+                          border: Border.all(
+                            color: accent.withOpacity(0.25),
+                            width: 1,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(10.sp),
+                          child: Image.network(
+                            imageUrl,
+                            color: accent,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.black45,
+                              size: 20.sp,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12.sp),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              category,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14.5.sp,
+                                fontWeight: FontWeight.w900,
+                                color: accent,
+                              ),
+                            ),
+                            SizedBox(height: 6.sp),
+                            Text(
+                              planName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5.sp,
+                                fontWeight: FontWeight.w700,
+                                color: accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.sp,
+                          vertical: 10.sp,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16.sp),
+                          border: Border.all(color: Colors.black12, width: 1),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "Price",
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                            SizedBox(height: 2.sp),
+                            Text(
+                              "₹ $price",
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.w900,
+                                color: accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.sp),
+                  Container(height: 1, width: double.infinity, color: Colors.black12),
+                  SizedBox(height: 10.sp),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 20.sp,
+                        width: 20.sp,
+                        decoration: BoxDecoration(
+                          color: accent.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(5.sp),
+                          border: Border.all(
+                            color: accent.withOpacity(0.25),
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(Icons.check_rounded, size: 18.sp, color: accent),
+                      ),
+                      SizedBox(width: 10.sp),
+                      Expanded(
+                        child: Text(
+                          "Mock Test",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontSize: 12.5.sp,
+                            height: 1.35,
+                            fontWeight: FontWeight.w600,
+                            color: accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 20.sp,
+                          width: 20.sp,
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(5.sp),
+                            border: Border.all(
+                              color: accent.withOpacity(0.25),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(Icons.check_rounded, size: 18.sp, color: accent),
+                        ),
+                        SizedBox(width: 10.sp),
+                        Expanded(
+                          child: Text(
+                            "Test Series",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontSize: 12.5.sp,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                              color: accent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 20.sp,
+                          width: 20.sp,
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(5.sp),
+                            border: Border.all(
+                              color: accent.withOpacity(0.25),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(Icons.check_rounded, size: 18.sp, color: accent),
+                        ),
+                        SizedBox(width: 10.sp),
+                        Expanded(
+                          child: Text(
+                            "Previous Paper",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontSize: 12.5.sp,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                              color: accent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 20.sp,
+                          width: 20.sp,
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(5.sp),
+                            border: Border.all(
+                              color: accent.withOpacity(0.25),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(Icons.check_rounded, size: 18.sp, color: accent),
+                        ),
+                        SizedBox(width: 10.sp),
+                        Expanded(
+                          child: Text(
+                            "Duration: 180 days",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontSize: 12.5.sp,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                              color: accent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 20.sp,
+                          width: 20.sp,
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(5.sp),
+                            border: Border.all(
+                              color: accent.withOpacity(0.25),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(Icons.check_rounded, size: 18.sp, color: accent),
+                        ),
+                        SizedBox(width: 10.sp),
+                        Expanded(
+                          child: Text(
+                            desc.isEmpty ? "Premium access for your preparation." : desc,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontSize: 12.5.sp,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                              color: accent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 14.sp),
+                  Padding(
+                    padding: EdgeInsets.all(6.sp),
+                    child: SizedBox(
+                      height: 46.sp,
+                      width: double.infinity,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18.sp),
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 180),
+                          opacity: isClickable ? 1 : 0.55,
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(18.sp),
+                            clipBehavior: Clip.antiAlias,
+                            child: InkWell(
+                              onTap: isClickable ? onContinue : null,
+                              splashColor: Colors.white.withOpacity(0.12),
+                              highlightColor: Colors.white.withOpacity(0.06),
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(18.sp),
+                                  gradient: LinearGradient(
+                                    colors: isActive
+                                        ? const [
+                                      Color(0xFF22C55E),
+                                      Color(0xFF16A34A),
+                                    ]
+                                        : [
+                                      accent,
+                                      accent,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(isActive ? 0.28 : 0.22),
+                                    width: 1,
+                                  ),
+                                  boxShadow: isClickable
+                                      ? [
+                                    BoxShadow(
+                                      color: (isActive
+                                          ? const Color(0xFF22C55E)
+                                          : const Color(0xFF2563EB))
+                                          .withOpacity(0.40),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 12),
+                                    ),
+                                  ]
+                                      : [],
+                                ),
+                                child: Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(7.sp),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.18),
+                                          borderRadius: BorderRadius.circular(14.sp),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.22),
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          isActive ? Icons.verified : Icons.currency_rupee_rounded,
+                                          size: 18.sp,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10.sp),
+                                      Text(
+                                        isActive ? "ACTIVE" : "Pay ₹ $price",
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 0.35,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: 12.sp,
+              right: 12.sp,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.sp, vertical: 6.sp),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: Colors.black12, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
+                    )
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 8.sp,
+                      width: 8.sp,
+                      decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                    ),
+                    SizedBox(width: 6.sp),
+                    Text(
+                      isActive ? "Active" : "Plan",
+                      style: TextStyle(
+                        fontSize: 10.5.sp,
+                        fontWeight: FontWeight.w800,
+                        color: accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

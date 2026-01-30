@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:realestate/CommonCalling/progressbarPrimari.dart';
 
 class NEETCalendar extends StatefulWidget {
   const NEETCalendar({super.key});
@@ -62,9 +63,7 @@ class _NEETCalendarState extends State<NEETCalendar> {
                   child: CachedNetworkImage(
                     imageUrl: imageUrl,
                     fit: BoxFit.contain,
-                    placeholder: (context, url) => Center(child: CircularProgressIndicator(
-                      color: Colors.pink,
-                    )),
+                    placeholder: (context, url) => Center(child: PrimaryCircularProgressWidget()),
                     errorWidget: (context, url, error) => Text('Failed to load image'),
                   ),
                 ),
@@ -107,7 +106,7 @@ class _NEETCalendarState extends State<NEETCalendar> {
             child: Opacity(
               opacity: 0.9,
               child: Image.asset(
-                'assets/3.png',
+                'assets/3.jpeg',
                 fit: BoxFit.fitHeight,
               ),
             ),

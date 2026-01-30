@@ -9,9 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../baseurl/baseurl.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 
 class AddSlotScreen extends StatefulWidget {
-  const AddSlotScreen({super.key, });
+  const AddSlotScreen({super.key});
 
   @override
   State<AddSlotScreen> createState() => _TeacherProfileScreenState();
@@ -24,7 +25,6 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
   TimeOfDay? _selectedTime; // Store selected time
   TimeOfDay? _selectedTime2; // Store selected time
 
-
   bool isLoading = true;
   int? selectedSlotId;
 
@@ -32,13 +32,17 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
   List<DateTime> getFilteredMonthDays(DateTime month) {
     int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     List<DateTime> allDays = List.generate(
-        daysInMonth, (index) => DateTime(month.year, month.month, index + 1));
+      daysInMonth,
+      (index) => DateTime(month.year, month.month, index + 1),
+    );
 
     // Filter: Show only 2 days before today and the rest of the month
     return allDays
-        .where((date) =>
-    date.isAfter(DateTime.now().subtract(Duration(days: 1))) ||
-        date.isAtSameMomentAs(DateTime.now()))
+        .where(
+          (date) =>
+              date.isAfter(DateTime.now().subtract(Duration(days: 1))) ||
+              date.isAtSameMomentAs(DateTime.now()),
+        )
         .toList();
   }
 
@@ -54,8 +58,11 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
     if (_selectedDate.month > _currentDate.month ||
         _selectedDate.year > _currentDate.year) {
       setState(() {
-        _selectedDate =
-            DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month - 1,
+          1,
+        );
       });
     }
   }
@@ -76,7 +83,6 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
     }
   }
 
-
   Future<void> _pickTime2(BuildContext context) async {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -93,37 +99,50 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
   String formatTime(TimeOfDay? time) {
     if (time == null) return "Select Time";
     final now = DateTime.now();
-    final formattedTime = DateFormat("HH:mm").format(DateTime(
-      now.year,
-      now.month,
-      now.day,
-      time.hour,
-      time.minute,
-    ));
+    final formattedTime = DateFormat(
+      "HH:mm",
+    ).format(DateTime(now.year, now.month, now.day, time.hour, time.minute));
     return formattedTime;
   }
 
   String displayTime(TimeOfDay? time) {
     if (time == null) return "Select Time";
     final now = DateTime.now();
-    final formattedTime = DateFormat("h:mm a").format(DateTime(
-      now.year,
-      now.month,
-      now.day,
-      time.hour,
-      time.minute,
-    ));
+    final formattedTime = DateFormat(
+      "h:mm a",
+    ).format(DateTime(now.year, now.month, now.day, time.hour, time.minute));
     return formattedTime;
   }
 
+  bool get _isFormValid {
+    // date always set hai, but past date block already hai
+    if (_selectedTime == null || _selectedTime2 == null) return false;
+
+    final start = _toMinutes(_selectedTime!);
+    final end = _toMinutes(_selectedTime2!);
+
+    // end must be strictly greater than start
+    if (end <= start) return false;
+
+    // selected date should not be past (safety)
+    final now = DateTime.now();
+    final selected = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+    );
+    final today = DateTime(now.year, now.month, now.day);
+    if (selected.isBefore(today)) return false;
+
+    return true;
+  }
+
+  int _toMinutes(TimeOfDay t) => (t.hour * 60) + t.minute;
 
   @override
   void initState() {
     super.initState();
   }
-
-
-
 
   Future<void> hitSlotBook(BuildContext context) async {
     try {
@@ -131,9 +150,7 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.orange),
-          );
+          return const Center(child: PrimaryCircularProgressWidget());
         },
       );
 
@@ -165,8 +182,10 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
         print("Booking successful: $responseData");
         Fluttertoast.showToast(
           msg: "Create successful!",
-          toastLength: Toast.LENGTH_SHORT,  // or Toast.LENGTH_LONG
-          gravity: ToastGravity.BOTTOM,  // TOP, CENTER, BOTTOM
+          toastLength: Toast.LENGTH_SHORT,
+          // or Toast.LENGTH_LONG
+          gravity: ToastGravity.BOTTOM,
+          // TOP, CENTER, BOTTOM
           backgroundColor: Colors.black,
           textColor: Colors.white,
           fontSize: 16.0,
@@ -178,118 +197,198 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
       Navigator.pop(context);
       print("Error booking slot: $e");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final monthDays = getFilteredMonthDays(_selectedDate);
+    final monthName = DateFormat.yMMMM().format(_selectedDate);
 
-    List<DateTime> monthDays = getFilteredMonthDays(_selectedDate);
-    String monthName = DateFormat.yMMMM().format(_selectedDate); // Example: "February 2025"
-    return Scaffold(
-      backgroundColor: Colors.green.shade100,
-      body: Container(
+    return SafeArea(
+      top: false,
+      child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(10.r)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 18,
+              offset: const Offset(0, -6),
+            ),
+          ],
         ),
         child: Column(
           children: [
+            // ---------- Header ----------
+            Container(
+              padding: EdgeInsets.fromLTRB(16.w, 5.h, 16.w, 5.h),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF010071), Color(0xFF0A1AFF)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10.r)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 42.w,
+                    height: 5.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(99.r),
+                    ),
+                  ),
+                  // SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                          children: [
+                            Text(
+                              "Add Slot",
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              "Pick date & time, then create slot",
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                color: Colors.white.withOpacity(0.85),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(Icons.close_rounded, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ---------- Body ----------
             Expanded(
               child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(5.w, 5.h, 5.w, 5.h),
+                // bottom space for button
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    // Month switch row
+                    Container(
+                      padding: EdgeInsets.all(10.w),
+                      decoration: _cardDeco(),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                'Select Date',
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: homepageColor),
-                              )
-                            ],
-                          ),
-                          Card(
-                            elevation: 2,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                if (_selectedDate.month > _currentDate.month ||
-                                    _selectedDate.year > _currentDate.year)
-                                  IconButton(
-                                      icon: Icon(
-                                        Icons.arrow_back_ios,
-                                        size: 20,
-                                      ),
-                                      onPressed: _previousMonth)
-                                else
-                                  SizedBox(width: 8),
-                                Text(monthName,
-                                    style: TextStyle(
-                                        fontSize: 15, fontWeight: FontWeight.bold)),
-                                IconButton(
-                                    icon: Icon(
-                                      Icons.arrow_forward_ios_outlined,
-                                      size: 20,
-                                    ),
-                                    onPressed: _nextMonth),
-                              ],
+                          Expanded(
+                            child: Text(
+                              "Select Date",
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.black87,
+                              ),
                             ),
+                          ),
+                          _iconCircle(
+                            enabled:
+                                (_selectedDate.month > _currentDate.month ||
+                                _selectedDate.year > _currentDate.year),
+                            icon: Icons.arrow_back_ios_new_rounded,
+                            onTap: _previousMonth,
+                          ),
+                          SizedBox(width: 10.w),
+                          Text(
+                            monthName,
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(width: 10.w),
+                          _iconCircle(
+                            enabled: true,
+                            icon: Icons.arrow_forward_ios_rounded,
+                            onTap: _nextMonth,
                           ),
                         ],
                       ),
                     ),
+
+                    SizedBox(height: 12.h),
+
+                    // Date chips
                     SizedBox(
-                      height: 100,
-                      child: ListView.builder(
+                      height: 70.h,
+                      child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: monthDays.length,
+                        separatorBuilder: (_, __) => SizedBox(width: 10.w),
                         itemBuilder: (context, index) {
-                          final DateTime currentDate = DateTime.now();
-                          final DateTime date = monthDays[index];
+                          final now = DateTime.now();
+                          final date = monthDays[index];
 
-                          final bool isPastDate = date.isBefore(DateTime(
-                              currentDate.year, currentDate.month, currentDate.day));
-                          final bool isCurrentDate = date.day == currentDate.day &&
-                              date.month == currentDate.month &&
-                              date.year == currentDate.year;
-                          final bool isSelected = date.day == _selectedDate.day &&
+                          final isPastDate = date.isBefore(
+                            DateTime(now.year, now.month, now.day),
+                          );
+                          final isSelected =
+                              date.day == _selectedDate.day &&
                               date.month == _selectedDate.month &&
                               date.year == _selectedDate.year;
 
-                          Color getColor() {
-                            if (isCurrentDate) return Colors.blue;
-                            if (isSelected) return Colors.green;
-                            if (isPastDate) return Colors.red;
-                            return Colors.grey[200]!;
-                          }
+                          final bg = isPastDate
+                              ? Colors.grey.shade200
+                              : (isSelected ? homepageColor : Colors.white);
+
+                          final border = isSelected
+                              ? Colors.transparent
+                              : Colors.black.withOpacity(0.07);
+
+                          final txt = isPastDate
+                              ? Colors.black.withOpacity(0.35)
+                              : (isSelected ? Colors.white : Colors.black87);
 
                           return GestureDetector(
                             onTap: isPastDate
                                 ? null
-                                : () {
-                              setState(() {
-                                _selectedDate = date;
-                              });
-                            },
-                            child: Container(
-                              width: 80,
-                              margin:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                                : () => setState(() => _selectedDate = date),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              width: 74.w,
+                              padding: EdgeInsets.symmetric(vertical: 10.h),
                               decoration: BoxDecoration(
-                                color: getColor(),
-                                borderRadius: BorderRadius.circular(10),
+                                color: bg,
+                                borderRadius: BorderRadius.circular(16.r),
+                                border: Border.all(color: border),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: homepageColor.withOpacity(
+                                            0.25,
+                                          ),
+                                          blurRadius: 14,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ]
+                                    : [],
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -297,26 +396,18 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
                                   Text(
                                     DateFormat.E().format(date),
                                     style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: isCurrentDate ||
-                                          isSelected ||
-                                          isPastDate
-                                          ? Colors.white
-                                          : Colors.black,
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: txt,
                                     ),
                                   ),
-                                  SizedBox(height: 5),
+                                  SizedBox(height: 6.h),
                                   Text(
-                                    date.day.toString(),
+                                    "${date.day}",
                                     style: TextStyle(
-                                      fontSize: 23,
-                                      fontWeight: FontWeight.bold,
-                                      color: isCurrentDate ||
-                                          isSelected ||
-                                          isPastDate
-                                          ? Colors.white
-                                          : Colors.black,
+                                      fontSize: 20.sp,
+                                      fontWeight: FontWeight.w900,
+                                      color: txt,
                                     ),
                                   ),
                                 ],
@@ -326,29 +417,91 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
                         },
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Select Time',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: homepageColor),
-                          ),
-                          SizedBox(width: 20),
-                          ElevatedButton(
-                            onPressed: () => _pickTime(context),
-                            child: Text( formatTime(_selectedTime)), // Display in 12-hour format
-                          ),
-                          SizedBox(width: 20),
-                          ElevatedButton(
-                            onPressed: () => _pickTime2(context),
-                            child: Text(formatTime(_selectedTime2)), // Display in 12-hour format
-                          ),
 
+                    SizedBox(height: 10.h),
+
+                    // Time section title
+                    Text(
+                      "Select Time",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 5.h),
+
+                    // Time cards (Start / End)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _timeCard(
+                            title: "Start Time",
+                            value: displayTime(_selectedTime),
+                            icon: Icons.access_time_rounded,
+                            onTap: () => _pickTime(context),
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _timeCard(
+                            title: "End Time",
+                            value: displayTime(_selectedTime2),
+                            icon: Icons.timelapse_rounded,
+                            onTap: () => _pickTime2(context),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 14.h),
+
+                    // Summary card
+                    Container(
+                      padding: EdgeInsets.all(14.w),
+                      decoration: _cardDeco(),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44.w,
+                            height: 44.w,
+                            decoration: BoxDecoration(
+                              color: homepageColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(14.r),
+                            ),
+                            child: Icon(
+                              Icons.event_available_rounded,
+                              color: homepageColor,
+                              size: 24.sp,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Summary",
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(height: 4.h),
+                                Text(
+                                  "${DateFormat("dd MMM yyyy").format(_selectedDate)}  •  ${displayTime(_selectedTime)} - ${displayTime(_selectedTime2)}",
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black.withOpacity(0.65),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -356,29 +509,60 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
                 ),
               ),
             ),
-            // Spacer to push button to bottom
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 28.0),
-                child: GestureDetector(
-                  onTap: (){
-                    hitSlotBook(context);
-                  },
+
+            // ---------- Sticky Bottom Button ----------
+            Container(
+              padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 16.h),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 18,
+                    offset: const Offset(0, -6),
+                  ),
+                ],
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  if (!_isFormValid) {
+                    Fluttertoast.showToast(
+                      msg: (_selectedTime == null || _selectedTime2 == null)
+                          ? "Please select start & end time"
+                          : "End time must be after start time",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 14.0,
+                    );
+                    return;
+                  }
+                  hitSlotBook(context);
+                },
+                child: Opacity(
+                  opacity: _isFormValid ? 1.0 : 0.45,
                   child: Container(
-                    width: double.infinity,
-                    height: 50, // Fixed height
+                    height: 30.h,
                     decoration: BoxDecoration(
-                      color: homepageColor,
-                      borderRadius: BorderRadius.circular(10),
+                      gradient: LinearGradient(
+                        colors: _isFormValid
+                            ? [Color(0xFF010071), Color(0xFF0A1AFF)]
+                            : [Colors.grey, Colors.grey.shade500],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(5.r),
                     ),
                     child: Center(
                       child: Text(
-                        'ADD',
+                        "ADD SLOT",
                         style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 0.6,
+                        ),
                       ),
                     ),
                   ),
@@ -387,8 +571,107 @@ class _TeacherProfileScreenState extends State<AddSlotScreen> {
             ),
           ],
         ),
-      )
+      ),
+    );
+  }
 
+  // ---------------- Helpers ----------------
+
+  BoxDecoration _cardDeco() => BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(5.r),
+    border: Border.all(color: Colors.blue),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.05),
+        blurRadius: 14,
+        offset: const Offset(0, 8),
+      ),
+    ],
+  );
+
+  Widget _iconCircle({
+    required bool enabled,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        width: 36.w,
+        height: 36.w,
+        decoration: BoxDecoration(
+          color: enabled ? Colors.grey.shade100 : Colors.grey.shade200,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black.withOpacity(0.06)),
+        ),
+        child: Icon(
+          icon,
+          size: 18.sp,
+          color: enabled ? Colors.black87 : Colors.black26,
+        ),
+      ),
+    );
+  }
+
+  Widget _timeCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16.r),
+      child: Container(
+        padding: EdgeInsets.all(5.w),
+        decoration: _cardDeco(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18.sp, color: homepageColor),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Colors.black38,
+                  size: 22.sp,
+                ),
+              ],
+            ),
+            SizedBox(height: 5.h),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w900,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              "Tap to choose",
+              style: TextStyle(
+                fontSize: 10.sp,
+                color: Colors.black.withOpacity(0.55),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

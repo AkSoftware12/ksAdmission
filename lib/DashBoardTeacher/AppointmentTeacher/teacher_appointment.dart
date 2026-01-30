@@ -6,6 +6,7 @@ import 'package:realestate/Utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../CommonCalling/progressbarPrimari.dart';
 import '../../StudentTeacherUi/slot_add.dart';
 import '../../baseurl/baseurl.dart';
 
@@ -27,6 +28,7 @@ class _TeacherProfileScreenState extends State<TeacherScheduleScreen> {
 
   bool isLoading = true;
   int? selectedSlotId;
+  String _apiDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
 
   /// Generates a list of days for the selected month, including only 2 days before today
   List<DateTime> getFilteredMonthDays(DateTime month) {
@@ -90,17 +92,18 @@ class _TeacherProfileScreenState extends State<TeacherScheduleScreen> {
   }
 
   Future<void> hitTeacherSlotList() async {
+    setState(() => isLoading = true);
+
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
-      if (token == null) {
-        throw Exception("Authorization token is missing.");
-      }
+      if (token == null) throw Exception("Authorization token is missing.");
+
+      final String dateStr = _apiDate(_selectedDate); // ✅ only yyyy-MM-dd
 
       final response = await http.get(
-        Uri.parse('${teacherSlots}?date=$_selectedDate'),
-        // Ensure teacherList is a valid API URL
+        Uri.parse('${teacherSlots}?date=$dateStr'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -110,23 +113,17 @@ class _TeacherProfileScreenState extends State<TeacherScheduleScreen> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
-        if (responseData.containsKey('data')) {
-          setState(() {
-            slot = responseData['data'];
-            isLoading = false;
-
-            print(
-              ' Slot Data : $slot',
-            ); // Ensure teachersList is properly defined
-          });
-        } else {
-          throw Exception('Invalid API response: Missing "data" key');
-        }
+        setState(() {
+          slot = (responseData['data'] ?? []) as List<dynamic>;
+        });
       } else {
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
-      print("Error fetching teacher list: $e");
+      print("Error fetching teacher slots: $e");
+      setState(() => slot = []);
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -187,155 +184,146 @@ class _TeacherProfileScreenState extends State<TeacherScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<DateTime> monthDays = getFilteredMonthDays(_selectedDate);
-    String monthName = DateFormat.yMMMM().format(
-      _selectedDate,
-    ); // Example: "February 2025"
+    final List<DateTime> monthDays = getFilteredMonthDays(_selectedDate);
+    final String monthName = DateFormat.yMMMM().format(_selectedDate);
+
     return Scaffold(
-      backgroundColor: Colors.green.shade100,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Select Date',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: homepageColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Card(
-                    elevation: 2,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        // Show back arrow only if the user is ahead of the current month
-                        if (_selectedDate.month > _currentDate.month ||
-                            _selectedDate.year > _currentDate.year)
-                          IconButton(
-                            icon: Icon(Icons.arrow_back_ios, size: 20),
-                            onPressed: _previousMonth,
-                          )
-                        else
-                          SizedBox(width: 8),
-
-                        // Placeholder for spacing
-                        Text(
-                          monthName,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        IconButton(
-                          icon: Icon(
-                            Icons.arrow_forward_ios_outlined,
-                            size: 20,
-                          ),
-                          onPressed: _nextMonth,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+      backgroundColor: const Color(0xFFF6F8FF),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: _premiumHeader(monthName),
             ),
 
-            /// **Month Selector**
-
-            /// **Horizontal Month Calendar**
-            SizedBox(
-              height: 100,
-              child: Center(
+            /// Date strip
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 10.h),
+                child: _sectionTitle(
+                  title: "Select Date",
+                  sub: "Choose a day to manage your slots",
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 96.h,
                 child: ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w),
                   scrollDirection: Axis.horizontal,
                   itemCount: monthDays.length,
                   itemBuilder: (context, index) {
-                    final DateTime currentDate = DateTime.now();
+                    final DateTime now = DateTime.now();
                     final DateTime date = monthDays[index];
 
                     final bool isPastDate = date.isBefore(
-                      DateTime(
-                        currentDate.year,
-                        currentDate.month,
-                        currentDate.day,
-                      ),
+                      DateTime(now.year, now.month, now.day),
                     );
+
                     final bool isCurrentDate =
-                        date.day == currentDate.day &&
-                        date.month == currentDate.month &&
-                        date.year == currentDate.year;
+                        date.day == now.day &&
+                            date.month == now.month &&
+                            date.year == now.year;
+
                     final bool isSelected =
                         date.day == _selectedDate.day &&
-                        date.month == _selectedDate.month &&
-                        date.year == _selectedDate.year;
+                            date.month == _selectedDate.month &&
+                            date.year == _selectedDate.year;
 
-                    Color getColor() {
-                      if (isCurrentDate) return Colors.blue;
-                      if (isSelected) return Colors.green;
-                      if (isPastDate) return Colors.red;
-                      return Colors.grey[200]!;
-                    }
-
-                    return GestureDetector(
-                      onTap: isPastDate
-                          ? null
-                          : () {
-                              setState(() {
-                                _selectedDate = date;
-                                hitTeacherSlotList();
-                                selectedIndicesSlotAdd.clear();
-                              });
-                            },
-                      child: Container(
-                        width: 80,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: getColor(),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              DateFormat.E().format(date),
-                              // Short day name (Mon, Tue)
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: isCurrentDate || isSelected || isPastDate
-                                    ? Colors.white
-                                    : Colors.black,
+                    return Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 6.h),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18.r),
+                        onTap: isPastDate
+                            ? null
+                            : () {
+                          setState(() {
+                            _selectedDate = date;
+                            isLoading = true;
+                            selectedIndicesSlotAdd.clear();
+                          });
+                          hitTeacherSlotList();
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          width: 78.w,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18.r),
+                            gradient: isSelected
+                                ? const LinearGradient(
+                              colors: [Color(0xFF0A1AFF), Color(0xFF010071)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                                : isCurrentDate
+                                ? const LinearGradient(
+                              colors: [Color(0xFF00B2FF), Color(0xFF0077FF)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                                : null,
+                            color: (!isSelected && !isCurrentDate)
+                                ? Colors.white
+                                : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 14,
+                                offset: const Offset(0, 8),
                               ),
+                            ],
+                            border: Border.all(
+                              color: isPastDate
+                                  ? Colors.redAccent.withOpacity(0.35)
+                                  : isSelected
+                                  ? Colors.white.withOpacity(0.18)
+                                  : const Color(0xFFE6E9F6),
+                              width: 1,
                             ),
-                            SizedBox(height: 5),
-                            Text(
-                              date.day.toString(), // Day number
-                              style: TextStyle(
-                                fontSize: 23,
-                                fontWeight: FontWeight.bold,
-                                color: isCurrentDate || isSelected || isPastDate
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
+                          ),
+                          child: Opacity(
+                            opacity: isPastDate ? 0.55 : 1,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  DateFormat.E().format(date),
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: (isSelected || isCurrentDate)
+                                        ? Colors.white.withOpacity(0.95)
+                                        : const Color(0xFF2A2F45),
+                                  ),
+                                ),
+                                SizedBox(height: 6.h),
+                                Text(
+                                  date.day.toString(),
+                                  style: TextStyle(
+                                    fontSize: 22.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: (isSelected || isCurrentDate)
+                                        ? Colors.white
+                                        : isPastDate
+                                        ? Colors.redAccent
+                                        : const Color(0xFF111827),
+                                  ),
+                                ),
+                                SizedBox(height: 6.h),
+                                Container(
+                                  height: 6.h,
+                                  width: 22.w,
+                                  decoration: BoxDecoration(
+                                    color: (isSelected || isCurrentDate)
+                                        ? Colors.white.withOpacity(0.85)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(20.r),
+                                  ),
+                                )
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     );
@@ -344,193 +332,388 @@ class _TeacherProfileScreenState extends State<TeacherScheduleScreen> {
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Select Time',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: homepageColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Container(width: 12.sp, height: 12.sp, color: Colors.grey),
-                  Text(
-                    ' Cancel',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w500,
-                      color: homepageColor,
-                    ),
-                  ),
-                  SizedBox(width: 10.sp),
-
-                  Container(
-                    width: 12.sp,
-                    height: 12.sp,
-                    color: Colors.redAccent.shade100,
-                  ),
-                  Text(
-                    ' Slot Booked',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w500,
-                      color: homepageColor,
-                    ),
-                  ),
-
-                  SizedBox(width: 10.sp),
-
-                  Container(width: 12.sp, height: 12.sp, color: Colors.white),
-                  Text(
-                    ' Available',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w500,
-                      color: homepageColor,
-                    ),
-                  ),
-                ],
+            /// Time section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 10.h),
+                child: _sectionTitle(
+                  title: "Select Time",
+                  sub: "Tap slots to select & delete",
+                ),
               ),
             ),
 
-            isLoading
-                ? Container(
-                    height: 300.sp,
-                    child: Center(child: CircularProgressIndicator()),
-                  ) // Show loading indicator
-                : slot.isEmpty
-                ? SingleChildScrollView(
-                    child: Container(
-                      height: 300.sp,
-                      child: Center(
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              width: 120,
-                              height: 120,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.asset(
-                                  'assets/NO_SLOT_AVAILABLE_IMG.png',
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              "No Slots Available",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                : Column(
-                    children: [
-                      SizedBox(
-                        // height: 300.sp,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: slot.map((slotItem) {
-                              String slotId = slotItem['id']
-                                  .toString(); // Get slot ID as String
-                              bool isSelected = selectedIndicesSlotAdd.contains(
-                                slotId,
-                              ); // Check selection by slot ID
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14.w),
+                child: _legendRow(),
+              ),
+            ),
 
-                              return GestureDetector(
-                                onTap: () => toggleSelection(slotId),
-                                // Pass slot ID instead of index
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: slotItem['is_booked'] == 1
-                                        ? Colors.red.shade100
-                                        : slotItem['is_booked'] == 2
-                                        ? Colors.grey.shade500
-                                        : isSelected
-                                        ? Colors.indigoAccent
-                                        : Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: isSelected
-                                        ? Border.all(
-                                            color: Colors.blue,
-                                            width: 2,
-                                          )
-                                        : null,
-                                  ),
-                                  child: Text(
-                                    '${formatTime(slotItem['start_time'])} To ${formatTime(slotItem['end_time'])}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-
-                                      color: slotItem['is_booked'] == 1
-                                          ? Colors.red
-                                          : slotItem['is_booked'] == 2
-                                          ? Colors.white
-                                          : isSelected
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            /// Body
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(5.w, 12.h, 5.w, 100.h),
+                child: _bodySlots(),
+              ),
+            ),
           ],
         ),
       ),
+
+      /// Premium FAB stack
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (selectedIndicesSlotAdd.isNotEmpty)
-            FloatingActionButton(
+          AnimatedScale(
+            duration: const Duration(milliseconds: 180),
+            scale: selectedIndicesSlotAdd.isNotEmpty ? 1 : 0.0,
+            child: selectedIndicesSlotAdd.isNotEmpty
+                ? FloatingActionButton.extended(
+              heroTag: "deleteFab",
               onPressed: deleteSelected,
-              child: Icon(Icons.delete, color: Colors.white),
-              backgroundColor: HexColor('#950606'),
-            ),
-          SizedBox(height: 20.sp),
+              backgroundColor: const Color(0xFF950606),
+              icon: const Icon(Icons.delete, color: Colors.white),
+              label: Text(
+                "Delete (${selectedIndicesSlotAdd.length})",
+                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700,color: Colors.white),
+              ),
+            )
+                : const SizedBox.shrink(),
+          ),
+          SizedBox(height: 12.h),
           FloatingActionButton(
+            heroTag: "addFab",
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                builder: (context) => AddSlotScreen(),
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent, // premium look
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+                ),
+                builder: (context) {
+                  return Container(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+                    ),
+                    child: const AddSlotScreen(),
+                  );
+                },
               );
+
             },
-            child: Icon(Icons.add, color: Colors.white),
-            backgroundColor: Colors.blueGrey,
+            backgroundColor: const Color(0xFF0A1AFF),
+            child: const Icon(Icons.add, color: Colors.white),
           ),
         ],
+      ),
+    );
+  }
+
+  /// ---------- UI HELPERS (paste inside class) ----------
+
+  Widget _premiumHeader(String monthName) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(5.w, 2.h, 5.w, 0.h),
+      padding: EdgeInsets.fromLTRB(14.w, 5.h, 14.w, 5.h),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF010071), Color(0xFF0A1AFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(5.r),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0A1AFF).withOpacity(0.25),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46.w,
+            height: 46.w,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.16),
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(color: Colors.white.withOpacity(0.18)),
+            ),
+            child: const Icon(Icons.calendar_month_rounded, color: Colors.white),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Teacher Schedule",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  monthName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.85),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _monthSwitcher(monthName),
+        ],
+      ),
+    );
+  }
+
+  Widget _monthSwitcher(String monthName) {
+    final bool canGoBack = _selectedDate.month > _currentDate.month ||
+        _selectedDate.year > _currentDate.year;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: Colors.white.withOpacity(0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: canGoBack ? _previousMonth : null,
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 16.sp,
+              color: canGoBack ? Colors.white : Colors.white.withOpacity(0.35),
+            ),
+          ),
+          SizedBox(width: 10.w),
+          Text(
+            DateFormat.MMM().format(_selectedDate),
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(width: 10.w),
+          InkWell(
+            onTap: _nextMonth,
+            child: Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16.sp,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle({required String title, required String sub}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF111827),
+          ),
+        ),
+        SizedBox(height: 3.h),
+        Text(
+          sub,
+          style: TextStyle(
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF6B7280),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _legendRow() {
+    Widget pill(Color c, String t) => Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: const Color(0xFFE6E9F6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          )
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 10.w, height: 10.w, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(4.r))),
+          SizedBox(width: 8.w),
+          Text(t, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w700, color: const Color(0xFF2A2F45))),
+        ],
+      ),
+    );
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          pill(Colors.grey.shade500, "Cancel"),
+          SizedBox(width: 10.w),
+          pill(Colors.redAccent.shade100, "Slot Booked"),
+          SizedBox(width: 10.w),
+          pill(Colors.white, "Available"),
+        ],
+      ),
+    );
+  }
+
+  Widget _bodySlots() {
+    if (isLoading) {
+      return Container(
+        height: 260.h,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22.r),
+          border: Border.all(color: const Color(0xFFE6E9F6)),
+        ),
+        child: const Center(child: PrimaryCircularProgressWidget()),
+      );
+    }
+
+    if (slot.isEmpty) {
+      return Container(
+        height: 260.h,
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22.r),
+          border: Border.all(color: const Color(0xFFE6E9F6)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 110.w,
+              height: 110.w,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16.r),
+                child: Image.asset('assets/NO_SLOT_AVAILABLE_IMG.png', fit: BoxFit.cover),
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              "No Slots Available",
+              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w900, color: const Color(0xFF111827)),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              "Try another date or add new slots",
+              style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w500, color: const Color(0xFF6B7280)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(color: const Color(0xFFE6E9F6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Wrap(
+        spacing: 10.w,
+        runSpacing: 10.h,
+        children: slot.map((slotItem) {
+          final String slotId = slotItem['id'].toString();
+          final bool isSelected = selectedIndicesSlotAdd.contains(slotId);
+
+          final int booked = (slotItem['is_booked'] ?? 0) as int;
+
+          Color bg;
+          Color fg;
+
+          if (booked == 1) {
+            bg = Colors.redAccent.shade100;
+            fg = const Color(0xFF8A0B0B);
+          } else if (booked == 2) {
+            bg = Colors.grey.shade700;
+            fg = Colors.white;
+          } else if (isSelected) {
+            bg = const Color(0xFF0A1AFF);
+            fg = Colors.white;
+          } else {
+            bg = const Color(0xFFF3F5FF);
+            fg = const Color(0xFF111827);
+          }
+
+          return InkWell(
+            borderRadius: BorderRadius.circular(14.r),
+            onTap: () => toggleSelection(slotId),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(
+                  color: isSelected ? Colors.white.withOpacity(0.7) : const Color(0xFFE6E9F6),
+                  width: isSelected ? 1.4 : 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isSelected ? 0.12 : 0.06),
+                    blurRadius: 14,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Text(
+                '${formatTime(slotItem['start_time'])} - ${formatTime(slotItem['end_time'])}',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w800,
+                  color: fg,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

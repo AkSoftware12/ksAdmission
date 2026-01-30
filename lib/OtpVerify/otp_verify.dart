@@ -13,6 +13,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ChangePassword/change_password.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../Utils/app_colors.dart';
 import '../baseurl/baseurl.dart';
 
@@ -52,11 +53,8 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Colors.orangeAccent,
+              PrimaryCircularProgressWidget(
               ),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
             ],
           ),
         );
@@ -169,8 +167,8 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          primaryColor,
-                          primaryColor2
+                          Color(0xFF010071),
+                          Color(0xFF0A1AFF),
 
                         ],
                         begin: Alignment.topLeft,
@@ -189,7 +187,7 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> {
 
                               height: 150.sp,
                               // child: Image.asset('assets/log_in.png')
-                              child: Image.asset('assets/logo.png')
+                              child: Image.asset('assets/logo2.png')
                           )),
                     ),
                   ),
@@ -343,36 +341,10 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> {
                             if (formKey.currentState!.validate()) {
 
                               verifyOtpApi(context);
-                              // Navigator.pushReplacement(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) => ChangePasswordPage(),
-                              //   ),
-                              // );
-
 
                             }
 
 
-                            // formKey.currentState!.validate();
-                            // // conditions for validating
-                            // if (currentText.length != 4 || currentText != "1234") {
-                            //   errorController!.add(ErrorAnimationType
-                            //       .shake); // Triggering error shake animation
-                            //   setState(() => hasError = true);
-                            // } else {
-                            //
-                            //
-                            //
-                            //   // Navigator.push(context, MaterialPageRoute(builder: (context)=> ResetPasswordPage()),);
-                            //
-                            //   setState(
-                            //         () {
-                            //       hasError = false;
-                            //       snackBar("OTP Verified!!");
-                            //     },
-                            //   );
-                            // }
                           },
                           child: Center(
                             child: Text(
@@ -387,18 +359,8 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> {
                         ),
                       ),
                       decoration: BoxDecoration(
-                          color: primaryColor,
+                          color:  Color(0xFF0A1AFF),
                           borderRadius: BorderRadius.circular(5),
-                          // boxShadow: [
-                          //   BoxShadow(
-                          //       color: Colors.orange.shade200,
-                          //       offset: const Offset(1, -2),
-                          //       blurRadius: 5),
-                          //   BoxShadow(
-                          //       color: Colors.orange.shade200,
-                          //       offset: const Offset(-1, 2),
-                          //       blurRadius: 5)
-                          // ]
                       ),
                     ),
                     Row(

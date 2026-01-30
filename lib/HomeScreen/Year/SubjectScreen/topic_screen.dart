@@ -172,64 +172,6 @@ class _ChapterScreenState extends State<TopicScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<CompetitionCatergory> competition = [
-      CompetitionCatergory(
-        title: 'PHYSICS',
-        subtitle: 'Topic Name',
-        image: 'assets/ssc.jpg',
-        backgroundColor: Colors.orange,
-      ),
-      CompetitionCatergory(
-        title: 'CHEMISTRY',
-        subtitle: 'Topic Name',
-        image: 'assets/nda.jpg',
-        backgroundColor: Colors.purple,
-      ),
-      CompetitionCatergory(
-        title: 'BIOLOGY ',
-        subtitle: 'Topic Name',
-        image: 'assets/upsc.jpg',
-        backgroundColor: Colors.pink,
-      ),
-
-      CompetitionCatergory(
-        title: 'BIOLOGY ',
-        subtitle: 'Topic Name',
-        image: 'assets/upsc.jpg',
-        backgroundColor: Colors.orange,
-      ),
-
-      CompetitionCatergory(
-        title: 'BIOLOGY ',
-        subtitle: 'Topic Name',
-        image: 'assets/upsc.jpg',
-        backgroundColor: Colors.brown,
-      ),
-      CompetitionCatergory(
-        title: 'BIOLOGY ',
-        subtitle: 'Topic Name',
-        image: 'assets/upsc.jpg',
-        backgroundColor: Colors.red,
-      ),
-      CompetitionCatergory(
-        title: 'BIOLOGY ',
-        subtitle: 'Topic Name',
-        image: 'assets/upsc.jpg',
-        backgroundColor: Colors.cyan,
-      ),
-      CompetitionCatergory(
-        title: 'BIOLOGY ',
-        subtitle: 'Topic Name',
-        image: 'assets/upsc.jpg',
-        backgroundColor: Colors.black,
-      ),
-      CompetitionCatergory(
-        title: 'BIOLOGY ',
-        subtitle: 'Topic Name',
-        image: 'assets/upsc.jpg',
-        backgroundColor: Colors.deepPurpleAccent,
-      ),
-    ];
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -265,7 +207,7 @@ class _ChapterScreenState extends State<TopicScreen> {
                     width: double.infinity,
                     // height: 90.sp,
                     decoration: BoxDecoration(
-                      color: competition[index].backgroundColor,
+                      color: primaryColor,
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: Row(

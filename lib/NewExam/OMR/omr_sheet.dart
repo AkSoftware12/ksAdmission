@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../CommonCalling/progressbarPrimari.dart';
 import '../../HomePage/home_page.dart';
 import '../../Utils/app_colors.dart';
 import '../../Utils/textSize.dart';
@@ -52,11 +53,9 @@ class _OMRUploaderState extends State<OMRUploader> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: primaryColor,
+              PrimaryCircularProgressWidget(
               ),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+
             ],
           ),
         );

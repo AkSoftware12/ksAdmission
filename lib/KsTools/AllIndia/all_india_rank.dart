@@ -120,7 +120,7 @@ class _AllIndiaRankScreenState extends State<AllIndiaRankScreen> {
                                   //   end: Alignment.bottomCenter,
                                   // ),
                                   image: DecorationImage(
-                                    image: AssetImage('assets/allbgimg.png',),
+                                    image: AssetImage('assets/allbgim.jpeg',),
                                     // image: NetworkImage('https://png.pngtree.com/thumb_back/fh260/background/20190223/ourmid/pngtree-solid-color-matte-background-blue-gradient-wind-background-color-mattesolid-backgroundblue-image_84871.jpg'),
                                     // replace with your image path
                                     fit: BoxFit.cover,

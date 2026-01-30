@@ -141,11 +141,6 @@ class _QuizScreenState extends State<UserResultsScreen> {
     if (paperList.isEmpty) {
       return Scaffold(
         backgroundColor: primaryColor,
-        // body:Center(
-        //   child: CircularProgressIndicator(
-        //     color: Colors.white,
-        //   ),
-        // )
       );
     }
     return Material(

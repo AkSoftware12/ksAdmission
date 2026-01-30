@@ -17,6 +17,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HomePage/home_page.dart';
 import '../Utils/app_colors.dart';
 import '../baseurl/baseurl.dart';
@@ -49,8 +50,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Colors.orangeAccent,
+              PrimaryCircularProgressWidget(
               ),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),
@@ -134,15 +134,15 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             SizedBox(
-              height: 300.sp,
+              height: 250.sp,
               child: Stack(
                 children: [
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          primaryColor,
-                          primaryColor2
+                          Color(0xFF010071),
+                          Color(0xFF0A1AFF),
 
                         ],
                         begin: Alignment.topLeft,
@@ -161,7 +161,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                               height: 150.sp,
                               // child: Image.asset('assets/log_in.png')
-                              child: Image.asset('assets/logo.png')
+                              child: Image.asset('assets/logo2.png')
                           )),
                     ),
                   ),
@@ -226,7 +226,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           width: double.infinity,
                           height: 50.sp,
                           decoration: BoxDecoration(
-                            color: primaryColor,
+                            color: Color(0xFF0A1AFF),
                             borderRadius: BorderRadius.circular(10.0),
                             boxShadow: [
                               BoxShadow(
@@ -327,7 +327,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           width: double.infinity,
                           height: 50.sp,
                           decoration: BoxDecoration(
-                            color: primaryColor,
+                            color: Color(0xFF0A1AFF),
                             borderRadius: BorderRadius.circular(10.0),
                             boxShadow: [
                               BoxShadow(
@@ -428,7 +428,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           width: double.infinity,
                           height: 50.sp,
                           decoration: BoxDecoration(
-                            color: primaryColor,
+                            color: Color(0xFF0A1AFF),
                             borderRadius: BorderRadius.circular(10.0),
                             boxShadow: [
                               BoxShadow(
@@ -530,7 +530,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                       height: 50.sp,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
+                            backgroundColor: Color(0xFF0A1AFF),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15))),

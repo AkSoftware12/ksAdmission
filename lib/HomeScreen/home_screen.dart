@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Calender/calender.dart';
 import '../CollegeStateList/college_state_list.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../FreeSectionScreen/free_content_main.dart';
 import '../HexColorCode/HexColor.dart';
 import '../KsTools/INDRODUCATION/counselling_tool_feature.dart';
@@ -30,7 +31,6 @@ import 'Year/SubjectScreen/webView.dart';
 import 'Year/YearScreen/PerviceWithoutPlan/pervice_without_plan.dart';
 import 'Year/YearScreen/PerviceWithoutPlan/state_witout_plan.dart';
 import 'Year/yearpage.dart';
-import 'package:video_player/video_player.dart';
 
 class CompetitionCatergory {
   final String title;
@@ -77,11 +77,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late ScrollController? scrollController;
   late Timer _timer;
   final ScrollController _scrollController = ScrollController();
-  VideoPlayerController? _controller;
-  bool _isPlaying = false;
-  List<dynamic> videoUrls = [];
   int currentIndex = 0;
-  bool isMuted = true; // Mute video on first play
 
   @override
   void initState() {
@@ -121,7 +117,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     _timer.cancel();
     _scrollController?.dispose();
-    _controller?.dispose();
     WidgetsBinding.instance.removeObserver(this);
 
     super.dispose();
@@ -212,12 +207,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           classCategorie = responseData['classCategories'];
           print(classCategorie);
           print('Banner $banner');
-
-          videoUrls = responseData['video'];
-          if (videoUrls.isNotEmpty) {
-            initializeVideoPlayer(videoUrls[currentIndex]['video_urls']);
-          }
-          // videoUrls = responseData['video'];
         });
       } else {
         throw Exception('Invalid API response: Missing "category" key');
@@ -258,50 +247,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     } else {
       throw Exception('Failed to load data');
     }
-  }
-
-  void initializeVideoPlayer(String videoUrl) {
-    _controller?.dispose(); // Dispose previous controller
-
-    _controller = VideoPlayerController.network(videoUrl)
-      ..initialize().then((_) {
-        setState(() {});
-        _controller?.play();
-        _controller?.setVolume(isMuted ? 0 : 1); // Mute video on first play
-        _isPlaying = true;
-
-        _controller?.addListener(() {
-          if (_controller!.value.position == _controller!.value.duration) {
-            playNextVideo();
-          }
-        });
-      })
-      ..setLooping(false);
-  }
-
-  void playNextVideo() {
-    if (videoUrls.isNotEmpty) {
-      setState(() {
-        currentIndex = (currentIndex + 1) % videoUrls.length;
-        initializeVideoPlayer(videoUrls[currentIndex]['video_urls']);
-      });
-    }
-  }
-
-  void playPreviousVideo() {
-    if (videoUrls.isNotEmpty) {
-      setState(() {
-        currentIndex = (currentIndex - 1 + videoUrls.length) % videoUrls.length;
-        initializeVideoPlayer(videoUrls[currentIndex]['video_urls']);
-      });
-    }
-  }
-
-  void toggleMute() {
-    setState(() {
-      isMuted = !isMuted;
-      _controller?.setVolume(isMuted ? 0 : 1);
-    });
   }
 
   @override
@@ -593,10 +538,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 placeholder: (context, url) =>
                                                     Center(
                                                       child:
-                                                          CircularProgressIndicator(
-                                                            color: Colors
-                                                                .orangeAccent,
-                                                          ),
+                                                          PrimaryCircularProgressWidget(),
                                                     ),
                                                 errorWidget:
                                                     (
@@ -677,7 +619,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.all(5.0),
+                      padding: const EdgeInsets.all(2.0),
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -692,18 +634,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.asset(
-                            'assets/addmission_tools.jpg',
+                            'assets/admission_tools2.jpeg',
                             fit: BoxFit.fill,
-                            height: 170.sp,
+                            height: 160.sp,
                             width: double.infinity,
                           ),
                         ),
                       ),
                     ),
-
-
-
-
 
                     // Ks Demo Section
                     Padding(
@@ -758,7 +696,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.asset(
-                            'assets/ksdemosection.png',
+                            'assets/ksdemosection.jpeg',
                             fit: BoxFit.cover,
                             height: 120.sp,
                             width: double.infinity,
@@ -809,7 +747,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    OnlineDashBoard(),
+                                                    OnlineDashBoard(
+                                                      isLocked:
+                                                          classCategorie[index]['is_locked'],
+                                                    ),
                                               ),
                                             );
                                           } else if (index == 1) {
@@ -857,7 +798,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                                 child: Image.asset(
-                                                  'assets/onlinecl.png',
+                                                  'assets/onlinecl.jpeg',
                                                   fit: BoxFit.fill,
                                                   height: 85.sp,
                                                   width: double.infinity,
@@ -868,7 +809,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                                 child: Image.asset(
-                                                  'assets/offline.png',
+                                                  'assets/offline.jpeg',
                                                   fit: BoxFit.fill,
                                                   height: 85.sp,
                                                   width: double.infinity,
@@ -879,7 +820,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                                 child: Image.asset(
-                                                  'assets/praticesimage.png',
+                                                  'assets/praticesimage.jpeg',
                                                   fit: BoxFit.fill,
                                                   height: 85.sp,
                                                   width: double.infinity,
@@ -890,7 +831,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                                 child: Image.asset(
-                                                  'assets/daily.png',
+                                                  'assets/daily.jpeg',
                                                   fit: BoxFit.fill,
                                                   height: 85.sp,
                                                   width: double.infinity,
@@ -1021,10 +962,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 placeholder: (context, url) =>
                                                     Center(
                                                       child:
-                                                          CircularProgressIndicator(
-                                                            color: Colors
-                                                                .orangeAccent,
-                                                          ),
+                                                          PrimaryCircularProgressWidget(),
                                                     ),
                                                 errorWidget:
                                                     (
@@ -1071,169 +1009,214 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     //  Daily Quiz Exam  Start
                     if (dailyQuizs.isNotEmpty)
                       Padding(
-                        padding: EdgeInsets.all(5.sp),
+                        padding: EdgeInsets.all(8.sp),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: HexColor('#a28089'),
-                            borderRadius: BorderRadius.circular(
-                              10.sp,
-                            ), // Adjust for roundness
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.blue.shade500,
+                                Colors.blue.shade300,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(14.sp),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
                           ),
                           child: Padding(
-                            padding: EdgeInsets.only(bottom: 8.sp),
+                            padding: EdgeInsets.symmetric(vertical: 5.sp),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                /// 🔹 Header
                                 Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 5.sp,
-                                    left: 8.sp,
-                                    right: 5.sp,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.sp,
                                   ),
                                   child: Row(
                                     children: [
-                                      Text.rich(
-                                        TextSpan(
-                                          text: AppConstants.dailyQuiz,
-                                          style: GoogleFonts.radioCanada(
-                                            textStyle: TextStyle(
-                                              fontSize: 17.sp,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
+                                      Container(
+                                        padding: EdgeInsets.all(6.sp),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.25),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.quiz_rounded,
+                                          color: Colors.white,
+                                          size: 18.sp,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8.sp),
+                                      Text(
+                                        AppConstants.dailyQuiz,
+                                        style: GoogleFonts.radioCanada(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5.sp),
-                                  child: Container(
-                                    height: 100.sp,
-                                    // Set an appropriate height for the ListView
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      // Make it scroll horizontally
-                                      itemCount: dailyQuizs.length,
-                                      // Number of items in the list
-                                      itemBuilder: (context, index) => Padding(
-                                        padding: EdgeInsets.all(2.sp),
-                                        child: Stack(
-                                          children: [
-                                            // if(category[index]['planstatus']=='locked')
-                                            GestureDetector(
-                                              onTap: () {
-                                                if (dailyQuizs[index]['test_status'] ==
-                                                    'Submited') {
-                                                  Fluttertoast.showToast(
-                                                    msg:
-                                                        "Quiz Already Submitted",
-                                                    toastLength:
-                                                        Toast.LENGTH_LONG,
-                                                    // Duration: LENGTH_SHORT or LENGTH_LONG
-                                                    gravity:
-                                                        ToastGravity.BOTTOM,
-                                                    // Position: BOTTOM, CENTER, or TOP
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                    textColor: Colors.white,
-                                                    fontSize: 16.0,
-                                                  );
-                                                } else {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) => MockQuizScreen(
-                                                        paperId:
-                                                            dailyQuizs[index]['id'],
-                                                        papername:
-                                                            dailyQuizs[index]['name']
-                                                                .toString(),
-                                                        exmaTime:
-                                                            dailyQuizs[index]['time_limit'] !=
-                                                                null
-                                                            ? dailyQuizs[index]['time_limit']
-                                                                  as int
-                                                            : 0,
-                                                        question: '',
-                                                        marks:
-                                                            dailyQuizs[index]['total_marks']
-                                                                .toString(),
-                                                        type: 'testSeries',
+
+                                SizedBox(height: 10.sp),
+
+                                /// 🔹 Quiz List
+                                SizedBox(
+                                  height: 100.sp,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: dailyQuizs.length,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.sp,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      final quiz = dailyQuizs[index];
+                                      final bool isSubmitted =
+                                          quiz['test_status'] == 'Submited';
+
+                                      return GestureDetector(
+                                        onTap: () {
+                                          if (isSubmitted) {
+                                            _showSubmittedPopup(context);
+                                            return;
+                                          }
+                                          else {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => MockQuizScreen(
+                                                  paperId: quiz['id'],
+                                                  papername: quiz['name']
+                                                      .toString(),
+                                                  exmaTime:
+                                                      quiz['time_limit'] != null
+                                                      ? quiz['time_limit']
+                                                            as int
+                                                      : 0,
+                                                  question: '',
+                                                  marks: quiz['total_marks']
+                                                      .toString(),
+                                                  type: 'testSeries',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        child: Container(
+                                          width: 95.sp,
+                                          margin: EdgeInsets.only(right: 10.sp),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              14.sp,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.12,
+                                                ),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Stack(
+                                            children: [
+                                              /// 🔸 Submitted Badge
+                                              if (isSubmitted)
+                                                Positioned(
+                                                  top: 3,
+                                                  right: 3,
+                                                  child: Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          horizontal: 3.sp,
+                                                          vertical: 2.sp,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.green,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8.sp,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      "DONE",
+                                                      style: TextStyle(
+                                                        fontSize: 7.sp,
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
-                                                  );
-                                                }
-                                              },
-                                              child: Padding(
-                                                padding: EdgeInsets.only(
-                                                  left: 5.sp,
+                                                  ),
                                                 ),
+
+                                              /// 🔸 Content
+                                              Center(
                                                 child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
                                                   children: [
                                                     Container(
-                                                      width: 80.sp,
-                                                      height: 70.sp,
+                                                      height: 50.sp,
+                                                      width: 50.sp,
+                                                      padding: EdgeInsets.all(
+                                                        5.sp,
+                                                      ),
                                                       decoration: BoxDecoration(
-                                                        // color: Colors.grey.withOpacity(0.8),
+                                                        color: HexColor(
+                                                          '#EEF2FF',
+                                                        ),
                                                         borderRadius:
                                                             BorderRadius.circular(
-                                                              10.0,
+                                                              12.sp,
                                                             ),
-                                                        border: Border.all(
-                                                          color: Colors
-                                                              .grey
-                                                              .shade200,
-                                                          // Border color
-                                                          width: 1
-                                                              .sp, // Border width
-                                                        ),
-                                                        // Rounded corners with radius 10
-                                                        // boxShadow: [
-                                                        //   BoxShadow(
-                                                        //     color: Colors.grey.withOpacity(0.5),
-                                                        //     spreadRadius: 2,
-                                                        //     blurRadius: 7,
-                                                        //     offset: Offset(0, 3),
-                                                        //   ),
-                                                        // ],
                                                       ),
-                                                      child: Center(
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                12.sp,
-                                                              ),
-                                                          child: Image.asset(
-                                                            'assets/quiz_8776742.png',
-                                                          ),
-                                                        ),
+                                                      child: Image.asset(
+                                                        'assets/quizimag.png',
                                                       ),
                                                     ),
-                                                    SizedBox(height: 5.sp),
-                                                    Center(
-                                                      child: Text(
-                                                        dailyQuizs[index]['name']
-                                                            .toString(),
-                                                        style: GoogleFonts.radioCanada(
-                                                          textStyle: TextStyle(
-                                                            fontSize: 12.sp,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .normal,
-                                                            color: Colors.white,
+                                                    SizedBox(height: 3.sp),
+                                                    Padding(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 6.sp,
                                                           ),
-                                                        ),
+                                                      child: Text(
+                                                        quiz['name'].toString(),
+                                                        maxLines: 2,
+                                                        overflow:
+                                                            TextOverflow.ellipsis,
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style:
+                                                            GoogleFonts.radioCanada(
+                                                              fontSize: 11.sp,
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                              color:
+                                                                  Colors.black87,
+                                                            ),
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ],
@@ -1314,7 +1297,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                         category[index]['name'],
                                                     initialIndex: 0,
                                                     planstatus:
-                                                        '${category[index]['planstatus'].toString()}',
+                                                        category[index]['planstatus']
+                                                            .toString(),
                                                   ),
                                                 ),
                                               );
@@ -1380,10 +1364,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                           url,
                                                         ) => Center(
                                                           child:
-                                                              CircularProgressIndicator(
-                                                                color: Colors
-                                                                    .orangeAccent,
-                                                              ),
+                                                              PrimaryCircularProgressWidget(),
                                                         ),
                                                     errorWidget:
                                                         (
@@ -1413,6 +1394,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
+
                     Padding(
                       padding: EdgeInsets.all(5.sp),
                       child: Column(
@@ -1561,10 +1543,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                 context,
                                                                 url,
                                                               ) => Center(
-                                                                child: CircularProgressIndicator(
-                                                                  color: Colors
-                                                                      .orangeAccent,
-                                                                ),
+                                                                child:
+                                                                    PrimaryCircularProgressWidget(),
                                                               ),
                                                           errorWidget:
                                                               (
@@ -1651,10 +1631,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                             context,
                                                             url,
                                                           ) => Center(
-                                                            child: CircularProgressIndicator(
-                                                              color: Colors
-                                                                  .orangeAccent,
-                                                            ),
+                                                            child:
+                                                                PrimaryCircularProgressWidget(),
                                                           ),
                                                       errorWidget:
                                                           (
@@ -1738,9 +1716,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         ],
                                       ),
                                     ),
-                                    Container(
+                                    SizedBox(
                                       height: 140.sp,
-                                      // Set an appropriate height for the ListView
                                       child: ListView.builder(
                                         scrollDirection: Axis.horizontal,
                                         // Make it scroll horizontally
@@ -1842,10 +1819,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                 context,
                                                                 url,
                                                               ) => Center(
-                                                                child: CircularProgressIndicator(
-                                                                  color: Colors
-                                                                      .orangeAccent,
-                                                                ),
+                                                                child:
+                                                                    PrimaryCircularProgressWidget(),
                                                               ),
                                                           errorWidget:
                                                               (
@@ -2009,10 +1984,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                             context,
                                                             url,
                                                           ) => Center(
-                                                            child: CircularProgressIndicator(
-                                                              color: Colors
-                                                                  .orangeAccent,
-                                                            ),
+                                                            child:
+                                                                PrimaryCircularProgressWidget(),
                                                           ),
                                                       errorWidget:
                                                           (
@@ -2142,10 +2115,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 placeholder: (context, url) =>
                                                     Center(
                                                       child:
-                                                          CircularProgressIndicator(
-                                                            color: Colors
-                                                                .orangeAccent,
-                                                          ),
+                                                          PrimaryCircularProgressWidget(),
                                                     ),
                                                 errorWidget:
                                                     (
@@ -2241,7 +2211,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                             ),
                                             // 10 SP radius for rounded corners
                                             child: Image.asset(
-                                              'assets/collogeimage.png',
+                                              'assets/collogeimag.jpeg',
                                               // Replace with your image path
                                               fit: BoxFit.fill,
                                             ),
@@ -2257,6 +2227,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
+
                     // video
                     // Padding(
                     //   padding: const EdgeInsets.only(top: 8.0),
@@ -2268,7 +2239,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     //             videoUrls.isEmpty ||
                     //                 _controller == null ||
                     //                 !_controller!.value.isInitialized
-                    //             ? Center(child: CircularProgressIndicator())
+                    //             ? Center(child: PrimaryCircularProgressWidget())
                     //             : Stack(
                     //                 alignment: Alignment.center,
                     //                 children: [
@@ -2335,7 +2306,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     //     ],
                     //   ),
                     // ),
-
                     Padding(
                       padding: EdgeInsets.all(5.sp),
                       child: Padding(
@@ -2548,52 +2518,64 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     ),
                                   ),
                                 ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Top Image
-                                    if (newsData[0]['image'] != null)
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.vertical(
-                                          top: Radius.circular(10),
-                                        ),
-                                        child: Image.network(
-                                          '${newsData[0]!['image_urls'].toString()}',
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Title
-                                          Text(
-                                            newsData[0]['title'] ?? '',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(height: 8),
-                                          // Subtitle
-                                          Text(
-                                            newsData[0]['description']
+                                if (newsData.isEmpty)
+                                  const SizedBox()
+                                else
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Top Image (safe)
+                                      if ((newsData.first['image_urls'] ?? '')
+                                          .toString()
+                                          .isNotEmpty)
+                                        ClipRRect(
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                top: Radius.circular(0),
+                                              ),
+                                          child: Image.network(
+                                            (newsData.first['image_urls'] ?? '')
                                                 .toString(),
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
+                                            width: double.infinity,
+                                            height: 180,
+                                            // optional (recommended)
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                const SizedBox(), // avoid crash on bad url
                                           ),
-                                          SizedBox(height: 16),
-                                          // Icons Row
-                                        ],
+                                        ),
+
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              (newsData.first['title'] ?? '')
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              (newsData.first['description'] ??
+                                                      '')
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                    ],
+                                  ),
                               ],
                             ),
                           ),
@@ -2690,4 +2672,161 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       },
     );
   }
+  void _showSubmittedPopup(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierLabel: "submitted",
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.55),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, a1, a2) => const SizedBox.shrink(),
+      transitionBuilder: (context, anim, a2, child) {
+        final curved = Curves.easeOutBack.transform(anim.value);
+
+        return Transform.scale(
+          scale: curved,
+          child: Opacity(
+            opacity: anim.value,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.86,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF0A1AFF),
+                        Color(0xFF010071),
+
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.25),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                      )
+                    ],
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // top icon
+                        Container(
+                          height: 64,
+                          width: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF22C55E).withOpacity(0.15),
+                            border: Border.all(
+                              color: const Color(0xFF22C55E),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.verified_rounded,
+                            color: Color(0xFF16A34A),
+                            size: 34,
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        const Text(
+                          "Already Submitted",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        Text(
+                          "Your quiz has already been submitted.\nYou can view results if available.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            height: 1.35,
+                            fontSize: 13.5,
+                            color: Colors.black.withOpacity(0.65),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  side: BorderSide(
+                                    color: Colors.black.withOpacity(0.15),
+                                  ),
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text(
+                                  "Close",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  backgroundColor: const Color(0xFF16A34A),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  // TODO: yaha "View Result" ka navigation daal do agar chaho
+                                  // Navigator.push(...);
+                                },
+                                child: const Text(
+                                  "OK",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 }

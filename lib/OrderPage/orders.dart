@@ -1,16 +1,13 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-
 import '../CommonCalling/data_not_found.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../CommonCalling/progressbarWhite.dart';
-import '../Utils/app_colors.dart';
+import '../HomePage/home_page.dart';
 import '../Utils/textSize.dart';
 import '../baseurl/baseurl.dart';
 
@@ -36,148 +33,233 @@ class _OrdersPageState extends State<OrdersPage> {
 
 
   Future<void> hitDoubtList() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString(
-      'token',
-    );
-    final response = await http.get(
-      Uri.parse("${offlinePlanstatus}"),
-      headers: {
-        'Authorization': 'Bearer $token', // Include your token here
-      },
-    );
+    setState(() => isLoading = true);
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
 
-      if (responseData.containsKey('data')) {
+      final response = await http.get(
+        Uri.parse(offlinePlanstatus),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+
         setState(() {
-          doubtlist = responseData['data'];
+          doubtlist = responseData['data'] ?? []; // ✅ null safe
         });
       } else {
-        throw Exception('Invalid API response: Missing "category" key');
+        setState(() => doubtlist = []);
       }
-    } else {
-      throw Exception('Failed to load data');
+    } catch (e) {
+      setState(() => doubtlist = []);
     }
+
+    setState(() => isLoading = false);
   }
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        automaticallyImplyLeading: true,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text('${'Orders'}',
-          style: TextStyle(color: Colors.white),
+        elevation: 0,
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF010071), Color(0xFF0A1AFF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
         ),
-      ),
+        title: Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  size: 25,
+                  color: Colors.white,
+                ),
+              ),
+            ),
 
-      body:isLoading
-          ? WhiteCircularProgressWidget()
-          :
+            const SizedBox(width: 12),
 
-      Column(
-        children: [
-          doubtlist.isEmpty
-              ? Center(child: DataNotFoundWidget())
-              :
-          Expanded(
-            child: ListView.builder(
-                itemCount: doubtlist.length,
-                itemBuilder: (BuildContext context, int index){
-                  return  Container(
-                    margin: EdgeInsets.all(3),
-                    decoration: BoxDecoration(
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Orders',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-
                     ),
-                    child: Padding(
-                      padding:  EdgeInsets.all(3.sp),
-                      child:ListTile(
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(00.sp),
-                          child: SizedBox(
-                            height: 40.sp,
-                            width: 40.sp,
-                            child: Image.asset('assets/business-plan.png'),
-                          ),
-                        ),
-                        title: Text(
-                          doubtlist[index]['plan']['name'].toString(),
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                              fontSize: TextSizes.textsmall,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-
-                            Text(
-                              '${doubtlist[index]['plan']['plan_desc'].toString()}',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                  fontSize: TextSizes.textsmall,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                            Text(
-                              '${doubtlist[index]['entry_date'].toString()}',
-                              style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                  fontSize: TextSizes.textsmall,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-
-                          ],
-                        ),
-                        trailing:  Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              ' ₹ ${doubtlist[index]['plan']['price'].toString()}',
-                              style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                  fontSize: TextSizes.textmedium,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold
-                                ),
-                              ),
-                            ),
-                            Text(
-                              ' ${doubtlist[index]['status_text'].toString()}',
-                              style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                  fontSize: TextSizes.textsmall2,
-                                  color: doubtlist[index]['status_text']=='Accepted'?Colors.green: Colors.red,
-                                  fontWeight: FontWeight.bold
-                                ),
-                              ),
-                            ),
-
-                          ],
-                        ),
-
-                      ),
-
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Track your offline plan orders & approvals",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
                     ),
-                  );
-                }),
-          )
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_none_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationList()),
+                );
+              },
+            ),
+          ),
         ],
       ),
+
+
+
+      body: isLoading
+          ?const PrimaryCircularProgressWidget()
+          : doubtlist.isEmpty
+          ? const Center(child: DataNotFoundWidget())
+          : ListView.builder(
+        itemCount: doubtlist.length,
+        itemBuilder: (BuildContext context, int index) {
+          final item = doubtlist[index];
+          final plan = item['plan'] ?? {};
+
+          return Container(
+            margin: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(3.sp),
+              child: ListTile(
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(0.sp),
+                  child: SizedBox(
+                    height: 40.sp,
+                    width: 40.sp,
+                    child: Image.asset('assets/business-plan.png'),
+                  ),
+                ),
+                title: Text(
+                  (plan['name'] ?? '').toString(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                      fontSize: TextSizes.textsmall,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (plan['plan_desc'] ?? '').toString(),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                          fontSize: TextSizes.textsmall,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    Text(
+                      (item['entry_date'] ?? '').toString(),
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                          fontSize: TextSizes.textsmall,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      ' ₹ ${(plan['price'] ?? '0').toString()}',
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                          fontSize: TextSizes.textmedium,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      ' ${(item['status_text'] ?? '').toString()}',
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                          fontSize: TextSizes.textsmall2,
+                          color: (item['status_text'] == 'Accepted')
+                              ? Colors.green
+                              : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+
 
     );
   }

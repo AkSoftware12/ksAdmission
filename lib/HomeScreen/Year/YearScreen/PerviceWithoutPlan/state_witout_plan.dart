@@ -128,11 +128,13 @@ class _NoticeBoardState extends State<NursingStateWithoutPlan> {
                             child: SizedBox(
                               height: 40.sp,
                               width: 60.sp,
-                              child: Image.asset(
-                                'assets/india_state.gif',
-                                // cacheWidth: 60,cacheHeight: 60,
+                              child: Icon(
+                                Icons.flag, // ya Icons.map / Icons.flag
+                                size: 30.sp,
+                                color: Colors.orangeAccent,
                               ),
                             ),
+
                           ),
                           title: Text(
                             doubtlist[index]['name'].toString(),

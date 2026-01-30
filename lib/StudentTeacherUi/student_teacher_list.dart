@@ -1,19 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:realestate/HomePage/home_page.dart';
-import 'package:realestate/Notification/notification.dart';
-import 'package:realestate/StudentTeacherUi/Chat/chat_screen_user.dart';
 import 'package:realestate/StudentTeacherUi/schedule.dart';
 import 'package:realestate/StudentTeacherUi/teacher_profile.dart';
-import 'package:realestate/Utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomeScreen/Year/SubjectScreen/webView.dart';
 import '../baseurl/baseurl.dart';
@@ -155,7 +148,7 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade200,
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+          ? const Center(child: PrimaryCircularProgressWidget())
           : teachersList.isEmpty
           ? _noDataCard() // ✅ empty state card
           : ListView.builder(
@@ -626,71 +619,24 @@ class TeacherCard extends StatelessWidget {
 
                           // Chat (same logic, better UI)
                           Expanded(
-                            child: StreamBuilder<QuerySnapshot>(
-                              stream: FirebaseFirestore.instance
-                                  .collection('users')
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return Container(
-                                    height: 40.h,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF6F7FB),
-                                      borderRadius: BorderRadius.circular(12.r),
-                                      border: Border.all(
-                                        color: Colors.black.withOpacity(0.06),
-                                      ),
-                                    ),
-                                    child: SizedBox(
-                                      width: 18.sp,
-                                      height: 18.sp,
-                                      child: const CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                  );
-                                }
-
-                                final users = snapshot.data!.docs.where((user) {
-                                  return user['email'] ==
-                                      _safeText(teacher['email']);
-                                }).toList();
-
-                                if (users.isEmpty) {
-                                  return _softButton(
-                                    icon: Icons.chat_rounded,
-                                    text: "Chat",
-                                    onTap: () => showCustomDialog(context),
-                                  );
-                                }
-
-                                final user = users[0];
-
-                                return _softButton(
-                                  icon: Icons.chat_rounded,
-                                  text: "Chat",
-                                  onTap: () {
-                                    final currentUser =
-                                        FirebaseAuth.instance.currentUser;
-                                    if (currentUser != null) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ChatUserScreen(
-                                            chatId: '',
-                                            userName: '',
-                                            image: '',
-                                            currentUser: currentUser,
-                                            chatUser: user,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                );
+                            child:_softButton(
+                              icon: Icons.chat_rounded,
+                              text: "Chat",
+                              onTap: () {
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (_) => ChatUserScreen(
+                                //       chatId: '',
+                                //       userName: '',
+                                //       image: '',
+                                //       currentUser: '',
+                                //       chatUser: '',
+                                //     ),
+                                //   ),
+                                // );
                               },
-                            ),
+                            )
                           ),
                         ],
                       ),

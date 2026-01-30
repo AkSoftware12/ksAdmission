@@ -533,8 +533,7 @@ class _QuizScreenState extends State<PracticeQuestionSubjectScreen> {
       return Scaffold(
         backgroundColor: primaryColor,
         body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
+          child: PrimaryCircularProgressWidget(
           ),
         ),
       );

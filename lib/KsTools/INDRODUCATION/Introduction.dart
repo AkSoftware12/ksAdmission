@@ -9,6 +9,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:realestate/Utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animate_do/animate_do.dart'; // For animations
+import '../../CommonCalling/progressbarPrimari.dart';
 import '../../HexColorCode/HexColor.dart';
 import '../../baseurl/baseurl.dart';
 import '../Counselor/counselor_payment.dart';
@@ -760,9 +761,7 @@ Widget build(BuildContext context) {
                   // Dynamic List of Expansion Items
                   if (isLoading)
                     Center(
-                      child: CircularProgressIndicator(
-                        color: HexColor('#5e19a1'),
-                      ),
+                      child: PrimaryCircularProgressWidget()
                     )
                   else if (errorMessage != null)
                     Center(

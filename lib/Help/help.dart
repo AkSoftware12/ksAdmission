@@ -5,6 +5,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import '../CommonCalling/progressbarPrimari.dart';
+import '../HomePage/home_page.dart';
 import '../Utils/app_colors.dart';
 import '../Utils/color_constants.dart';
 import '../Utils/image.dart';
@@ -34,9 +36,7 @@ class _DoubtSessionState extends State<HelpScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: Colors.orangeAccent),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+              PrimaryCircularProgressWidget(),
             ],
           ),
         );
@@ -118,20 +118,108 @@ class _DoubtSessionState extends State<HelpScreen> {
     return Scaffold(
       appBar: widget.appBar.isEmpty
           ? null
-          : AppBar(
-              backgroundColor: primaryColor,
-              iconTheme: IconThemeData(color: Colors.white),
-              title: Text(
-                "Help",
-                style: GoogleFonts.radioCanada(
-                  textStyle: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.normal,
+          :   AppBar(
+      elevation: 0,
+      centerTitle: false,
+      backgroundColor: Colors.transparent,
+      iconTheme: const IconThemeData(color: Colors.white),
+      automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF010071),
+              Color(0xFF0A1AFF),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blueAccent.withOpacity(0.35),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+      ),
+      title: Row(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: (){
+              Navigator.of(context).pop();
+
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.arrow_back, size: 25, color: Colors.white),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Help',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
-              ),
+                SizedBox(height: 2.h),
+                Text(
+                  "Get instant support & solutions",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
             ),
+          )
+
+
+        ],
+
+      ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.notifications_none_rounded),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationList()),
+              );
+            },
+          ),
+        ),
+      ],
+
+    ),
+
+
 
       body: Container(
         color: Colors.white,
@@ -198,8 +286,7 @@ class _DoubtSessionState extends State<HelpScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10.sp),
                             // Adjust the radius to make it more or less rounded
-                            color: ColorConstants
-                                .primaryColor, // Set your desired color
+                            color: Color(0xFF0A1AFF), // Set your desired color
                           ),
 
                           child: Center(

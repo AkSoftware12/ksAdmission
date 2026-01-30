@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:realestate/Plan/plan.dart';
 import 'package:secure_content/secure_content.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../QuizTestScreen/quizResultPage.dart';
 import '../Utils/app_colors.dart';
@@ -474,66 +475,124 @@ class _QuizScreenState extends State<PracticeQuestionScreen> {
       print('Error: $e');
     }
   }
-  Future<bool> showExitPopup(context) async{
-    return await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Container(
-              height: 120,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+
+  Future<bool> showExitPopup(BuildContext context) async {
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              /// 🔴 Icon
+              Icon(
+                Icons.exit_to_app_rounded,
+                size: 36,
+                color: Colors.redAccent,
+              ),
+
+              const SizedBox(height: 14),
+
+              /// 📝 Title
+              const Text(
+                "Exit Practice Question",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              /// 💬 Message
+              const Text(
+                "Do you really want to exit?",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: Colors.black54,
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              /// 🔘 Buttons
+              Row(
                 children: [
-                  Text("Do you want to exit?"),
-                  SizedBox(height: 30),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Navigator.pushReplacement(
-                            //   context,
-                            //   MaterialPageRoute(builder: (context) => Homepage(initialIndex: 0,)),
-                            // );
-
-
-                            Navigator.of(context).pop(true); // Exit the app
-
-                          },
-                          child: Text("Yes",style: TextStyle(color: Colors.white),),
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: greenColorQ),
+                  /// NO
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor: Colors.grey.shade200,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text(
+                        "No",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(width: 15),
-                      Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              print('no selected');
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("No", style: TextStyle(color: Colors.black)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                            ),
-                          ))
-                    ],
-                  )
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  /// YES
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor:  HexColor('#010071'),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text(
+                        "Yes",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-          );
-        });
+            ],
+          ),
+        );
+      },
+    ) ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     if (paperList.isEmpty) {
       return Scaffold(
-        backgroundColor: primaryColor,
+        // backgroundColor: primaryColor,
+        backgroundColor:  HexColor('#010071'),
         body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
+          child: PrimaryCircularProgressWidget(
           ),
         ),
       );
@@ -550,114 +609,34 @@ class _QuizScreenState extends State<PracticeQuestionScreen> {
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            elevation: 0,
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            iconTheme: const IconThemeData(color: Colors.white),
             automaticallyImplyLeading: false,
-            title: Center(
-              child: Text(
-                'Practice Question 24/7',
-                style: GoogleFonts.radioCanada(
-                  textStyle: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF010071),
+                    Color(0xFF0A1AFF),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
             ),
-
-            // title: Column(
-            //   children: [
-            //     Column(
-            //       children: [
-            //         Row(
-            //           crossAxisAlignment: CrossAxisAlignment.start,
-            //           mainAxisAlignment: MainAxisAlignment.start,
-            //           children: [
-            //             Icon(
-            //               Icons.alarm,
-            //               color: _secondsRemaining <= 10 ? Colors.red : Colors.green,
-            //               size: 20.sp,
-            //             ),
-            //             SizedBox(width: 10.sp),
-            //             // Add Flexible to ensure proper space allocation
-            //             Text('$formattedTime',style: TextStyle(color: Colors.green),),
-            //           ],
-            //         ),
-            //         // Uncommented code
-            //         Row(
-            //           children: [
-            //             Column(
-            //               children: [
-            //                 Text(
-            //                   ' ${widget.papername.toString()}',
-            //                   style: TextStyle(
-            //                     fontSize: 12.sp,
-            //                     fontWeight: FontWeight.bold,
-            //                     color: Colors.white, // Customize text color for paper name
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-            //           ],
-            //         ),
-            //       ],
-            //     ),
-            //   ],
-            // ),
-            //
-            // actions: <Widget>[
-            //   Builder(
-            //     builder: (context) {
-            //       return IconButton(
-            //         icon: Icon(
-            //           Icons.dialpad,
-            //           color: Colors.white,
-            //           size: 30.sp,
-            //         ),
-            //         onPressed: () {
-            //           Scaffold.of(context).openEndDrawer();
-            //         },
-            //       );
-            //     },
-            //   ),
-            //   Padding(
-            //     padding:  EdgeInsets.only(right: 5.sp),
-            //     child: GestureDetector(
-            //       onTap: () {
-            //         sendQuestionData();
-            //       },
-            //       child: Row(
-            //         children: [
-            //           Container(
-            //             height: 30.sp,
-            //             decoration: BoxDecoration(
-            //               borderRadius: BorderRadius.circular(10.sp),
-            //               color: Colors.green,
-            //             ),
-            //             child: Center(
-            //               child: Padding(
-            //                 padding: EdgeInsets.all(5.sp),
-            //                 child: Text(
-            //                   'SUBMIT',
-            //                   style: GoogleFonts.poppins(
-            //                     textStyle: TextStyle(
-            //                       fontSize: TextSizes.textmedium,
-            //                       fontWeight: FontWeight.normal,
-            //                       color: Colors.white,
-            //                     ),
-            //                   ),
-            //                 ),
-            //               ),
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            //
-            //
-            // ],
+            title: Text(
+              'Practice Question 24/7', // ✅ dynamic
+              style: GoogleFonts.poppins(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
+
           body: Stack(
             children: [
               Center(
@@ -1208,7 +1187,7 @@ class _QuizScreenState extends State<PracticeQuestionScreen> {
                               height: 40.sp,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10.sp),
-                                color: ColorConstants.primaryColor,
+                                color: HexColor('#010071'),
                               ),
                               child: Center(
                                 child: Padding(

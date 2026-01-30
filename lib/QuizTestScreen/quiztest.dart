@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:realestate/QuizTestScreen/quizResultPage.dart';
 import 'package:secure_content/secure_content.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../Utils/app_colors.dart';
 import '../Utils/color_constants.dart';
@@ -346,8 +347,7 @@ class _QuizScreenState extends State<QuizScreen> {
         child: Scaffold(
           backgroundColor: primaryColor,
           body: Center(
-            child: CircularProgressIndicator(
-              color: Colors.white,
+            child: PrimaryCircularProgressWidget(
             ),
           )
         ),

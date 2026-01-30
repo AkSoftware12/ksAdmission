@@ -42,67 +42,6 @@ class _TestScreenState extends State<TestSeriesCombinationScreen> {
 
   List<dynamic> testSeries = [];
 
-  final List<CompetitionCatergory> competition = [
-    CompetitionCatergory(
-      title: 'NEET PYS 2024',
-      subtitle: 'Get All India Rank',
-      image: 'assets/neet.png',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET PYS 2023',
-      subtitle: 'Get All India Rank',
-      image: 'assets/ssc.jpg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-        title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-        subtitle: 'Get All India Rank',
-        image: 'assets/nda.jpg',
-        backgroundColor: primaryColor),
-    CompetitionCatergory(
-        title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-        subtitle: 'Get All India Rank',
-        image: 'assets/upsc.jpg',
-        backgroundColor: primaryColor),
-    CompetitionCatergory(
-        title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-        subtitle: 'Get All India Rank',
-        image: 'assets/aiims.jfif',
-        backgroundColor: primaryColor),
-    CompetitionCatergory(
-        title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-        subtitle: 'Get All India Rank',
-        image: 'assets/jee.jpg',
-        backgroundColor: primaryColor),
-    CompetitionCatergory(
-        title: 'NEET - Physics Chapterwise PYP (2024-1998) ',
-        subtitle: 'Get All India Rank',
-        image: 'assets/ctet.jpeg',
-        backgroundColor: primaryColor),
-    CompetitionCatergory(
-        title: 'NEET PYS 2022',
-        subtitle: 'Get All India Rank',
-        image: 'assets/clat.jfif',
-        backgroundColor: primaryColor),
-
-    CompetitionCatergory(
-        title: 'NEET PYS 2021',
-        subtitle: 'Get All India Rank',
-        image: 'assets/rrb.jpg',
-        backgroundColor: primaryColor),
-    CompetitionCatergory(
-        title: 'NEET PYS 2020',
-        subtitle: 'Get All India Rank',
-        image: 'assets/nift.jpg',
-        backgroundColor: primaryColor),
-    CompetitionCatergory(
-        title: 'NEET PYS 2019',
-        subtitle: 'Get All India Rank',
-        image: 'assets/nift.jpg',
-        backgroundColor: primaryColor),
-
-  ];
 
   final List<Color> colorList = [
     primaryColor,
@@ -318,19 +257,6 @@ class _TestScreenState extends State<TestSeriesCombinationScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => MockQuizScreen(
-                          //       paperId: testSeries[index]['id'],
-                          //       papername: testSeries[index]['paper_name'].toString(),
-                          //       exmaTime: testSeries[index]['time_limit'] != null ? testSeries[index]['time_limit'] as int : 0,  // Providing default value for null
-                          //       question: testSeries[index]['question_count'].toString(),
-                          //       marks: testSeries[index]['total_marks'].toString(), type: 'testSeries',
-                          //     ),
-                          //   ),
-                          // );
-
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -359,17 +285,8 @@ class _TestScreenState extends State<TestSeriesCombinationScreen> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                 ),
-                                color: competition[index].backgroundColor,
+                                color: primaryColor,
                                 borderRadius: BorderRadius.circular(10.0),
-                                // Rounded corners with radius 10
-                                // boxShadow: [
-                                //   BoxShadow(
-                                //     color: Colors.grey.withOpacity(0.5),
-                                //     spreadRadius: 2,
-                                //     blurRadius: 7,
-                                //     offset: Offset(0, 3),
-                                //   ),
-                                // ],
                               ),
                               child: Padding(
                                 padding:  EdgeInsets.all(8.sp),

@@ -23,7 +23,7 @@ class DataNotFoundWhiteScreenWidget extends StatelessWidget {
                       Center(
                         child: SizedBox(
                           height: 200.sp,
-                            child: Image.asset('assets/dog2.gif')),
+                            child: Image.asset('assets/data_not.png')),
                       ),
                       Center(child: Padding(
                         padding:  EdgeInsets.only(top: 258.sp),

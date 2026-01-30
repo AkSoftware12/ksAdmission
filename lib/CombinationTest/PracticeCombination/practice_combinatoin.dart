@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../CommonCalling/progressbarPrimari.dart';
 import '../../HexColorCode/HexColor.dart';
 import '../../QuizTestScreen/quizResultPage.dart';
 import '../../Utils/app_colors.dart';
@@ -446,8 +447,7 @@ class _QuizScreenState extends State<PracticeCombinationScreen> {
       return Scaffold(
         backgroundColor: primaryColor,
         body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
+          child: PrimaryCircularProgressWidget(
           ),
         ),
       );

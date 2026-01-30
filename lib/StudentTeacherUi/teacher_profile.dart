@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:realestate/Utils/app_colors.dart';
 import '../../baseurl/baseurl.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
 import 'ReviewList/review_list.dart';
@@ -71,7 +72,7 @@ class _TeacherProfileScreenState extends State<TeacherProfileScreen> {
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(
-          child: CircularProgressIndicator(color: Colors.orange),
+          child: PrimaryCircularProgressWidget(),
         ),
       );
 

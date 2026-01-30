@@ -9,6 +9,7 @@ import 'package:realestate/Utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
 import '../baseurl/baseurl.dart';
@@ -236,7 +237,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
       //   barrierDismissible: false,
       //   builder: (BuildContext context) {
       //     return const Center(
-      //       child: CircularProgressIndicator(color: Colors.orange,),
+      //       child: PrimaryCircularProgressWidget(color: Colors.orange,),
       //     );
       //   },
       // );
@@ -1247,7 +1248,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
               isLoading
                   ? Container(
                       height: 200.sp,
-                      child: Center(child: CircularProgressIndicator()),
+                      child: Center(child: PrimaryCircularProgressWidget()),
                     ) // Show loading indicator
                   : slot.isEmpty
                   ? Center(
@@ -1705,7 +1706,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
-              CircularProgressIndicator(),
+              PrimaryCircularProgressWidget(),
               SizedBox(height: 20),
               Text("Please wait..."),
             ],
@@ -1787,7 +1788,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: primaryColor),
+              PrimaryCircularProgressWidget(),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),
             ],
@@ -2092,9 +2093,8 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: primaryColor),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+              PrimaryCircularProgressWidget(),
+
             ],
           ),
         );

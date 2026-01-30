@@ -128,8 +128,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          primaryColor,
-                          primaryColor2
+                          Color(0xFF010071),
+                          Color(0xFF0A1AFF),
 
                         ],
                         begin: Alignment.topLeft,
@@ -147,8 +147,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           child: SizedBox(
 
                               height: 150.sp,
-                              // child: Image.asset('assets/log_in.png')
-                              child: Image.asset('assets/logo.png')
+                              child: Image.asset('assets/logo2.png')
                           )),
                     ),
                   ),
@@ -213,7 +212,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           width: double.infinity,
                           height: 50.sp,
                           decoration: BoxDecoration(
-                            color: primaryColor,
+                            color: Color(0xFF0A1AFF),
                             borderRadius: BorderRadius.circular(10.0),
                             boxShadow: [
                               BoxShadow(
@@ -314,7 +313,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           width: double.infinity,
                           height: 50.sp,
                           decoration: BoxDecoration(
-                            color: primaryColor,
+                            color: Color(0xFF0A1AFF),
                             borderRadius: BorderRadius.circular(10.0),
                             boxShadow: [
                               BoxShadow(

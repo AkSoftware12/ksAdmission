@@ -14,7 +14,8 @@ import 'package:realestate/Utils/app_colors.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:video_player/video_player.dart';
+// import 'package:video_player/video_player.dart';
+import '../../CommonCalling/progressbarPrimari.dart';
 import '../../HexColorCode/HexColor.dart';
 import 'package:http/http.dart' as http;
 
@@ -53,7 +54,7 @@ class _FeatureToolsPageState extends State<ApplyPage>
   final _marksController = TextEditingController();
   final _budgetController = TextEditingController();
 
-  VideoPlayerController? _controller1;
+  // VideoPlayerController? _controller1;
 
   late AnimationController _controller;
   bool isLoading = false;
@@ -133,9 +134,7 @@ class _FeatureToolsPageState extends State<ApplyPage>
                     ? SizedBox(
                   height: MediaQuery.of(context).size.height - kToolbarHeight,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.purple,
-                    ),
+                    child: PrimaryCircularProgressWidget()
                   ),
                 )
                     : Padding(
@@ -533,10 +532,10 @@ class _FeatureToolsPageState extends State<ApplyPage>
     _stateController.dispose();
     _marksController.dispose();
     _budgetController.dispose();
-    if (_controller1 != null && _controller1!.value.isPlaying) {
-      _controller1!.pause();
-    }
-    _controller1?.dispose();
+    // if (_controller1 != null && _controller1!.value.isPlaying) {
+    //   _controller1!.pause();
+    // }
+    // _controller1?.dispose();
     _controller.dispose();
   }
 }

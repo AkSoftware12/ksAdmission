@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:http/http.dart' as http;
 
+import '../CommonCalling/progressbarPrimari.dart';
 import '../OtpVerify/otp_verify.dart';
 import '../Utils/app_colors.dart';
 import '../baseurl/baseurl.dart';
@@ -45,9 +46,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: Colors.orangeAccent),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+              PrimaryCircularProgressWidget(),
             ],
           ),
         );
@@ -139,7 +138,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [primaryColor, primaryColor2],
+                          colors: [
+                            Color(0xFF010071),
+                            Color(0xFF0A1AFF),
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -155,7 +157,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           child: SizedBox(
                             height: 150.sp,
                             // child: Image.asset('assets/log_in.png')
-                            child: Image.asset('assets/logo.png'),
+                            child: Image.asset('assets/logo2.png'),
                           ),
                         ),
                       ),
@@ -233,7 +235,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             width: double.infinity,
                             height: 50.sp,
                             decoration: BoxDecoration(
-                              color: primaryColor,
+                              color: Color(0xFF0A1AFF),
                               borderRadius: BorderRadius.circular(10.0),
                               boxShadow: [
                                 BoxShadow(
@@ -334,7 +336,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         height: 50.sp,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
+                            backgroundColor: Color(0xFF0A1AFF),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),

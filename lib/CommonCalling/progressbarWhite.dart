@@ -1,6 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../HexColorCode/HexColor.dart';
 
 class  WhiteCircularProgressWidget extends StatelessWidget {
   const WhiteCircularProgressWidget({
@@ -10,8 +10,9 @@ class  WhiteCircularProgressWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: CircularProgressIndicator(
-        color: Colors.white,
+      child:CupertinoActivityIndicator(
+        radius: 20,
+        color: HexColor('#0e4ccc'),
       ), // Show progress bar here
     );
   }

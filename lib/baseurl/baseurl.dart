@@ -6,7 +6,6 @@ var baseUrlImage = "https://apiweb.ksadmission.in";
 
 
 
-
 var register = "${baseUrl}signup";
 var login = "${baseUrl}login";
 var getState = "${baseUrl}getStatelist";
@@ -54,6 +53,7 @@ var offlineplan = "${baseUrl}offline-plan";
 var dailyQuiz = "${baseUrl}getquiz";
 var planCreate = "${baseUrl}planCreate";
 var ordersIdRazorpay = "${baseUrl}ordersid";
+var ordersCompanyIdRazorpay = "${baseUrl}orders_company_id";
 var razorpayKayId = "${baseUrl}getrazorpaykey";
 var paymentStore = "${baseUrl}payment-store";
 var eventPaymentStore = "${baseUrl}event-payment-store";
@@ -114,9 +114,19 @@ var addSlots = "${baseUrl}teacher/set-availability";
 var studentListBooking = "${baseUrl}teacher/booking";
 var studentViewProfile = "${baseUrl}teacher/student/profile/";
 var studentPerformanceProfile = "${baseUrl}teacher/student/performance/";
+var teacherLiveClasses = "${baseUrl}teacher/live-classes";
 
 
 
+
+
+// Free video Api
+var getFreeContent = "${baseUrl}free-content";
+var getFreeContentData = "${baseUrl}free-content/";
+
+
+// Live Class
+var userLiveClasses = "${baseUrl}live-classes";
 
 
 

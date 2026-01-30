@@ -13,10 +13,7 @@ import '../../../CommonCalling/data_not_found.dart';
 import '../../../CommonCalling/progressbarWhite.dart';
 import '../../../Utils/app_colors.dart';
 import '../../../Utils/image.dart';
-import '../../../Utils/string.dart';
 import '../../../baseurl/baseurl.dart';
-import '../../home_screen.dart';
-import '../Test/TestPaper/test_paper.dart';
 
 class YearScreen extends StatefulWidget {
   final String title;
@@ -41,75 +38,6 @@ class _YearScreenState extends State<YearScreen> {
   bool isLoading = false; // Add this for the loading state
   List<dynamic> banner = [];
 
-  final List<CompetitionCatergory> competition = [
-    CompetitionCatergory(
-      title: 'NEET PYS 2024',
-      subtitle: 'Get All India Rank',
-      image: 'assets/neet.png',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET PYS 2023',
-      subtitle: 'Get All India Rank',
-      image: 'assets/ssc.jpg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-      subtitle: 'Get All India Rank',
-      image: 'assets/nda.jpg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-      subtitle: 'Get All India Rank',
-      image: 'assets/upsc.jpg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-      subtitle: 'Get All India Rank',
-      image: 'assets/aiims.jfif',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET - Physics Chapterwise PYP (2024-1998)',
-      subtitle: 'Get All India Rank',
-      image: 'assets/jee.jpg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET - Physics Chapterwise PYP (2024-1998) ',
-      subtitle: 'Get All India Rank',
-      image: 'assets/ctet.jpeg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET PYS 2022',
-      subtitle: 'Get All India Rank',
-      image: 'assets/clat.jfif',
-      backgroundColor: primaryColor,
-    ),
-
-    CompetitionCatergory(
-      title: 'NEET PYS 2021',
-      subtitle: 'Get All India Rank',
-      image: 'assets/rrb.jpg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET PYS 2020',
-      subtitle: 'Get All India Rank',
-      image: 'assets/nift.jpg',
-      backgroundColor: primaryColor,
-    ),
-    CompetitionCatergory(
-      title: 'NEET PYS 2019',
-      subtitle: 'Get All India Rank',
-      image: 'assets/nift.jpg',
-      backgroundColor: primaryColor,
-    ),
-  ];
 
   final List<Color> colorList = [primaryColor, Colors.white];
 

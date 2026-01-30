@@ -3,22 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  cloud_firestore
-  connectivity_plus
-  desktop_drop
   file_selector_windows
-  firebase_auth
   firebase_core
   flutter_inappwebview_windows
   flutter_secure_storage_windows
-  gal
-  media_kit_video
   permission_handler_windows
   printing
-  record_windows
   share_plus
   syncfusion_pdfviewer_windows
-  thumblr_windows
   url_launcher_windows
 )
 

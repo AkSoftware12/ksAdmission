@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -9,8 +7,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:realestate/Utils/color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Auth/chat_login_service.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../ContainerShape/container.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
@@ -37,7 +36,6 @@ class _RegisterPageState extends State<RegisterPage>
   String? phoneError;
   int _selectedIndex = 0;
   PageController _pageController = PageController(initialPage: 0);
-  final AuthServiceChat _authService = AuthServiceChat();
 
   String? passwordError;
 
@@ -71,22 +69,6 @@ class _RegisterPageState extends State<RegisterPage>
   List<dynamic> subjectList = [];
 
 
-  void _signUp() async {
-    User? user = await _authService.signUp(
-      emailController.text,
-      passwordController.text,
-      nameController.text,
-    );
-    // if (user != null) {
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(builder: (_) => UserListScreen()),
-    //   );
-    // } else {
-    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Sign-up failed")));
-    // }
-  }
-
 
   Future<void> _registerUser(BuildContext context) async {
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -103,8 +85,7 @@ class _RegisterPageState extends State<RegisterPage>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(
-                    color: primaryColor,
+                  PrimaryCircularProgressWidget(
                   ),
                   // SizedBox(width: 16.0),
                   // Text("Logging in..."),
@@ -164,14 +145,6 @@ class _RegisterPageState extends State<RegisterPage>
           await prefs.setString('data', user);
           prefs.setBool('isLoggedIn', true);
 
-          User? userchat = await _authService.signUp(
-            responseData['data']['email'].toString(),
-            passwordController.text.toString(),
-            responseData['data']['name'].toString(),
-          );
-
-
-
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -221,7 +194,11 @@ class _RegisterPageState extends State<RegisterPage>
       );
     });
   }
-
+  LinearGradient get _bgGradient => const LinearGradient(
+    colors: [ColorSelect.kBlue1, ColorSelect.kBlue2],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
   Future<void> _registerTeacher(BuildContext context) async {
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
     String? deviceToken = await _firebaseMessaging.getToken();
@@ -232,7 +209,7 @@ class _RegisterPageState extends State<RegisterPage>
           barrierDismissible: false,
           builder: (BuildContext context) {
             return Center(
-              child: CircularProgressIndicator(color: primaryColor),
+              child: PrimaryCircularProgressWidget(),
             );
           },
         );
@@ -267,12 +244,6 @@ class _RegisterPageState extends State<RegisterPage>
           if (response.statusCode == 200 || response.statusCode == 201) {
             print("Success: ${response.body}");
             final Map<String, dynamic> responseData = json.decode(response.body);
-            User? userchat = await _authService.signUp(
-              responseData['data']['email'].toString(),
-              passwordController.text.toString(),
-              responseData['data']['name'].toString(),
-            );
-
             showSuccessDialog(context);
 
 
@@ -508,7 +479,7 @@ class _RegisterPageState extends State<RegisterPage>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10), // Rounded corners with radius 10
                   child: Image.asset(
-                    'assets/Register_Successful_Transparent.png',
+                    'assets/register_successful_transparent.jpeg',
                     width: 150,
                     height: 150,
                     fit: BoxFit.cover, // Ensures the image covers the rounded area properly
@@ -560,13 +531,98 @@ class _RegisterPageState extends State<RegisterPage>
       },
     );
   }
+  void _onRoleChange(int index) {
+    setState(() {
+      isSelected = [index == 0, index == 1];
+      emailController.clear();
+      passwordController.clear();
+    });
+
+    // optional: keyboard close + focus reset
+    FocusScope.of(context).unfocus();
+  }
+  Widget _roleToggle(double screenWidth) {
+    final selectedBg = Colors.white;
+    final unSelectedText = Colors.white.withOpacity(0.85);
+
+    return Container(
+      width: screenWidth * 0.95,
+      padding: EdgeInsets.all(6.sp),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(color: Colors.white.withOpacity(0.22)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14.r),
+              onTap: () => _onRoleChange(0),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                padding: EdgeInsets.symmetric(vertical: 12.sp),
+                decoration: BoxDecoration(
+                  color: isSelected[0] ? selectedBg : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
+                child: Center(
+                  child: Text(
+                    "Student",
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.5.sp,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected[0] ? Colors.black : unSelectedText,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 6.sp),
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14.r),
+              onTap: () => _onRoleChange(1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                padding: EdgeInsets.symmetric(vertical: 12.sp),
+                decoration: BoxDecoration(
+                  color: isSelected[1] ? selectedBg : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
+                child: Center(
+                  child: Text(
+                    "Teacher",
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.5.sp,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected[1] ? Colors.black : unSelectedText,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: isSelected[0] ? primaryColor : Colors.blueGrey,
+      backgroundColor: ColorSelect.kBlue1,
+
       body: SingleChildScrollView(
         child: Form(
           key: formKey,
@@ -575,127 +631,136 @@ class _RegisterPageState extends State<RegisterPage>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Container(
-                height: 230.sp,
-                color: isSelected[0] ? primaryColor : Colors.blueGrey,
+                height: 190.sp,
+                color: Colors.transparent,
                 child: ClipPath(
-                  clipper: WaveClipper(),
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: 250.sp, // Adjust height according to your need
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              isSelected[0] ? primaryColor : Colors.blueGrey,
-                              isSelected[0] ? Colors.blueGrey : primaryColor,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Center(
-                              child: SizedBox(
-                                  height: 150.sp,
-                                  // child: Image.asset('assets/log_in.png')
-
-                                  child: Column(
-                                    children: [
-                                      SizedBox(
-                                          width: 150.sp,
-                                          height: 100.sp,
-                                          child: Image.asset(logo)),
-                                      Text.rich(TextSpan(
-                                        text: AppConstants.appLogoName,
-                                        style: GoogleFonts.poppins(
-                                          textStyle: TextStyle(
-                                              fontSize: 18.sp,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white),
-                                        ),
-                                        children: <TextSpan>[
-                                          TextSpan(
-                                            text: AppConstants.appLogoName2,
-                                            style: GoogleFonts.poppins(
-                                              textStyle: TextStyle(
-                                                  fontSize: 18.sp,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white),
-                                            ),
-                                          )
-                                        ],
-                                      )),
+                  // clipper: WaveClipper(),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: _bgGradient, // your existing gradient
+                      borderRadius: BorderRadius.circular(5)
+                    ),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 12.h),
+                        child: Column(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                /// 🔵 Logo Card
+                                Container(
+                                  height: 62.sp,
+                                  width: 62.sp,
+                                  padding: EdgeInsets.all(6.sp),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16.r),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.18),
+                                        blurRadius: 14,
+                                        offset: const Offset(0, 6),
+                                      ),
                                     ],
-                                  ))),
+                                  ),
+                                  child: Image.asset(
+                                    logo,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+
+                                SizedBox(width: 14.w),
+
+                                /// 🔵 Text Area
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      /// App Name
+                                      Text.rich(
+                                        TextSpan(
+                                          text: AppConstants.appLogoName,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 18.sp,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                            letterSpacing: 0.4,
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                              text: AppConstants.appLogoName2,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 20.sp,
+                                                fontWeight: FontWeight.w800,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      SizedBox(height: 0.h),
+
+                                      /// Create Account
+                                      Text(
+                                        "Create Your Account",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white.withOpacity(0.95),
+                                        ),
+                                      ),
+
+                                      SizedBox(height: 0.h),
+
+                                      /// Role Based Subtitle
+                                      Text(
+                                        isSelected[0]
+                                            ? "Join as a Student and start learning today"
+                                            : "Join as a Teacher and inspire students",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 9.sp,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white.withOpacity(0.80),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 5.sp,
+                            ),
+                            _roleToggle(screenWidth),
+
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(bottom: 28.sp),
-                child: Center(
-                  child: Container(
-                    width: screenWidth * 0.9, // Use 80% of the screen width
-                    child: ToggleButtons(
-                      borderColor: Colors.white,
-                      selectedBorderColor: Colors.white,
-                      fillColor: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      isSelected: isSelected,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < isSelected.length; i++) {
-                            isSelected[i] = i == index;
-                          }
-                        });
-                      },
-                      children: [
-                        // Adjust width of each button
-                        Container(
-                          width: (screenWidth * 0.9) / 2 - 4,
-                          // Half of 80% minus spacing
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Student',
-                            style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                                color:
-                                    isSelected[0] ? Colors.black : Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: (screenWidth * 0.9) / 2 - 4,
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Teacher',
-                            style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                                color:
-                                    isSelected[0] ? Colors.white : Colors.black,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ),
               ),
+              SizedBox(
+                height: 2.sp,
+              ),
+
 
               // Conditional Container
               isSelected[0]
                   ? SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(topRight: Radius.circular(10.sp),topLeft: Radius.circular(10.sp),bottomLeft: Radius.circular(10.sp),bottomRight: Radius.circular(10.sp))
+                      ),
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20.sp),
+                        padding: EdgeInsets.symmetric(horizontal: 20.sp,vertical: 5.sp),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -708,7 +773,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "Course",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -716,14 +781,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -744,7 +809,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.orange
@@ -762,7 +827,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                                 Padding(
                                   padding:
-                                      EdgeInsets.only(left: 8.0, right: 8.sp),
+                                  EdgeInsets.only(left: 3.0, right: 3.sp),
                                   child: Container(
                                     width: double.infinity,
                                     height: 50.sp,
@@ -783,9 +848,9 @@ class _RegisterPageState extends State<RegisterPage>
                                         Flexible(
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
-                                                horizontal: 8.0),
+                                                horizontal: 3.0),
                                             child:
-                                                DropdownButtonFormField<String>(
+                                            DropdownButtonFormField<String>(
                                               decoration: InputDecoration(
                                                 hintText: 'Select Course',
                                                 hintStyle: TextStyle(
@@ -802,14 +867,16 @@ class _RegisterPageState extends State<RegisterPage>
                                                   // Use the ID as the value
                                                   child: Text(
                                                     item[
-                                                        'name'], // Display the name
+                                                    'name'], // Display the name
+
                                                     style: GoogleFonts.poppins(
                                                       textStyle: TextStyle(
-                                                          fontSize: 15,
+                                                          fontSize: 13,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
+                                                    maxLines: 1,
                                                   ),
                                                 );
                                               }).toList(),
@@ -829,7 +896,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
 
                             SizedBox(height: 1.sp),
                             Row(
@@ -839,7 +906,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "Full Name",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -847,14 +914,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -875,7 +942,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.orange
@@ -893,7 +960,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                                 Padding(
                                   padding:
-                                      EdgeInsets.only(left: 8.0, right: 8.sp),
+                                  EdgeInsets.only(left: 8.0, right: 8.sp),
                                   child: Container(
                                     width: double.infinity,
                                     height: 50.sp,
@@ -922,7 +989,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 textStyle: TextStyle(
                                                     fontSize: 15.sp,
                                                     fontWeight:
-                                                        FontWeight.normal,
+                                                    FontWeight.normal,
                                                     color: Colors.black),
                                               ),
                                               decoration: InputDecoration(
@@ -948,7 +1015,7 @@ class _RegisterPageState extends State<RegisterPage>
                                               //   }
                                               // },
                                               textInputAction:
-                                                  TextInputAction.next,
+                                              TextInputAction.next,
                                               // This sets the keyboard action to "Next"
                                               onEditingComplete: () =>
                                                   FocusScope.of(context)
@@ -992,7 +1059,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                 ),
                               ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
 
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1001,7 +1068,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "Email id",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -1009,14 +1076,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -1037,7 +1104,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.orange
@@ -1080,13 +1147,13 @@ class _RegisterPageState extends State<RegisterPage>
                                             child: TextFormField(
                                               controller: emailController,
                                               keyboardType:
-                                                  TextInputType.emailAddress,
+                                              TextInputType.emailAddress,
 
                                               style: GoogleFonts.poppins(
                                                 textStyle: TextStyle(
                                                     fontSize: 15.sp,
                                                     fontWeight:
-                                                        FontWeight.normal,
+                                                    FontWeight.normal,
                                                     color: Colors.black),
                                               ),
                                               decoration: InputDecoration(
@@ -1113,7 +1180,7 @@ class _RegisterPageState extends State<RegisterPage>
                                               //       : "Please enter a valid email";
                                               // },
                                               textInputAction:
-                                                  TextInputAction.next,
+                                              TextInputAction.next,
                                               // This sets the keyboard action to "Next"
                                               onEditingComplete: () =>
                                                   FocusScope.of(context)
@@ -1158,7 +1225,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                               ),
 
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
 
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1167,7 +1234,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "Contact Number",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -1175,14 +1242,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -1203,7 +1270,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.orange
@@ -1221,7 +1288,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                                 Padding(
                                   padding:
-                                      EdgeInsets.only(left: 8.0, right: 8.sp),
+                                  EdgeInsets.only(left: 8.0, right: 8.sp),
                                   child: Container(
                                     width: double.infinity,
                                     height: 50.sp,
@@ -1250,12 +1317,12 @@ class _RegisterPageState extends State<RegisterPage>
                                                 textStyle: TextStyle(
                                                     fontSize: 15.sp,
                                                     fontWeight:
-                                                        FontWeight.normal,
+                                                    FontWeight.normal,
                                                     color: Colors.black),
                                               ),
                                               decoration: InputDecoration(
                                                 hintText:
-                                                    'Enter your mobile number',
+                                                'Enter your mobile number',
                                                 border: InputBorder.none,
                                                 prefixIcon: Icon(Icons.call,
                                                     color: Colors.black),
@@ -1276,7 +1343,7 @@ class _RegisterPageState extends State<RegisterPage>
                                               //   }
                                               // },
                                               textInputAction:
-                                                  TextInputAction.next,
+                                              TextInputAction.next,
                                               // This sets the keyboard action to "Next"
                                               onEditingComplete: () =>
                                                   FocusScope.of(context)
@@ -1320,7 +1387,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                 ),
                               ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
 
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1329,7 +1396,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "Password",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -1337,7 +1404,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             // Remove GestureDetector from wrapping Scaffold
 
                             Stack(
@@ -1346,7 +1413,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -1367,7 +1434,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.orange
@@ -1410,12 +1477,12 @@ class _RegisterPageState extends State<RegisterPage>
                                             child: TextFormField(
                                               controller: passwordController,
                                               keyboardType:
-                                                  TextInputType.emailAddress,
+                                              TextInputType.emailAddress,
                                               style: GoogleFonts.poppins(
                                                 textStyle: TextStyle(
                                                     fontSize: 15.sp,
                                                     fontWeight:
-                                                        FontWeight.normal,
+                                                    FontWeight.normal,
                                                     color: Colors.black),
                                               ),
                                               decoration: InputDecoration(
@@ -1473,7 +1540,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                 ),
                               ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
 
                             SizedBox(height: 1.sp),
                             Row(
@@ -1483,7 +1550,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "Class",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -1491,14 +1558,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -1519,7 +1586,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.orange
@@ -1566,10 +1633,10 @@ class _RegisterPageState extends State<RegisterPage>
                                             // Removes border to rely on container styling
                                             hintText: 'Select Class',
                                             hintStyle:
-                                                TextStyle(color: Colors.black),
+                                            TextStyle(color: Colors.black),
                                             icon: Padding(
                                               padding:
-                                                  const EdgeInsets.all(8.0),
+                                              const EdgeInsets.all(8.0),
                                               child: Icon(Icons.class_),
                                             )),
                                         value: selectedValue2,
@@ -1600,7 +1667,7 @@ class _RegisterPageState extends State<RegisterPage>
                                     width: double.infinity,
                                     height: 50.sp,
                                     decoration: BoxDecoration(
-                                      color: primaryColor,
+                                      color: ColorSelect.kBlue1,
                                       borderRadius: BorderRadius.circular(10.0),
                                       boxShadow: [
                                         BoxShadow(
@@ -1621,7 +1688,7 @@ class _RegisterPageState extends State<RegisterPage>
                                             decoration: BoxDecoration(
                                               color: Colors.white,
                                               borderRadius:
-                                                  BorderRadius.circular(10.0),
+                                              BorderRadius.circular(10.0),
                                               boxShadow: [
                                                 BoxShadow(
                                                   color: Colors.orange
@@ -1639,14 +1706,14 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                   Padding(
                                     padding:
-                                        EdgeInsets.only(left: 8.0, right: 8.sp),
+                                    EdgeInsets.only(left: 8.0, right: 8.sp),
                                     child: Container(
                                       width: double.infinity,
                                       height: 50.sp,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius:
-                                            BorderRadius.circular(10.0),
+                                        BorderRadius.circular(10.0),
                                         boxShadow: [
                                           BoxShadow(
                                             color: Colors.grey.withOpacity(0.5),
@@ -1665,17 +1732,17 @@ class _RegisterPageState extends State<RegisterPage>
                                               child: TextFormField(
                                                 controller: schoolController,
                                                 keyboardType:
-                                                    TextInputType.name,
+                                                TextInputType.name,
                                                 style: GoogleFonts.poppins(
                                                   textStyle: TextStyle(
                                                       fontSize: 15.sp,
                                                       fontWeight:
-                                                          FontWeight.normal,
+                                                      FontWeight.normal,
                                                       color: Colors.black),
                                                 ),
                                                 decoration: InputDecoration(
                                                   hintText:
-                                                      'Enter Your School Name',
+                                                  'Enter Your School Name',
                                                   border: InputBorder.none,
                                                   prefixIcon: Icon(
                                                       Icons.account_circle,
@@ -1697,7 +1764,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 //   }
                                                 // },
                                                 textInputAction:
-                                                    TextInputAction.next,
+                                                TextInputAction.next,
                                                 // This sets the keyboard action to "Next"
                                                 onEditingComplete: () =>
                                                     FocusScope.of(context)
@@ -1718,7 +1785,7 @@ class _RegisterPageState extends State<RegisterPage>
                                     width: double.infinity,
                                     height: 50.sp,
                                     decoration: BoxDecoration(
-                                      color: primaryColor,
+                                      color: ColorSelect.kBlue1,
                                       borderRadius: BorderRadius.circular(10.0),
                                       boxShadow: [
                                         BoxShadow(
@@ -1739,7 +1806,7 @@ class _RegisterPageState extends State<RegisterPage>
                                             decoration: BoxDecoration(
                                               color: Colors.white,
                                               borderRadius:
-                                                  BorderRadius.circular(10.0),
+                                              BorderRadius.circular(10.0),
                                               boxShadow: [
                                                 BoxShadow(
                                                   color: Colors.orange
@@ -1757,14 +1824,14 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                   Padding(
                                     padding:
-                                        EdgeInsets.only(left: 8.0, right: 8.sp),
+                                    EdgeInsets.only(left: 8.0, right: 8.sp),
                                     child: Container(
                                       width: double.infinity,
                                       height: 50.sp,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius:
-                                            BorderRadius.circular(10.0),
+                                        BorderRadius.circular(10.0),
                                         boxShadow: [
                                           BoxShadow(
                                             color: Colors.grey.withOpacity(0.5),
@@ -1783,12 +1850,12 @@ class _RegisterPageState extends State<RegisterPage>
                                               child: TextFormField(
                                                 controller: examNameController,
                                                 keyboardType:
-                                                    TextInputType.name,
+                                                TextInputType.name,
                                                 style: GoogleFonts.poppins(
                                                   textStyle: TextStyle(
                                                       fontSize: 15.sp,
                                                       fontWeight:
-                                                          FontWeight.normal,
+                                                      FontWeight.normal,
                                                       color: Colors.black),
                                                 ),
                                                 decoration: InputDecoration(
@@ -1814,7 +1881,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 //   }
                                                 // },
                                                 textInputAction:
-                                                    TextInputAction.next,
+                                                TextInputAction.next,
                                                 // This sets the keyboard action to "Next"
                                                 onEditingComplete: () =>
                                                     FocusScope.of(context)
@@ -1828,14 +1895,14 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 20),
+                              SizedBox(height: 10),
                               Stack(
                                 children: [
                                   Container(
                                     width: double.infinity,
                                     height: 50.sp,
                                     decoration: BoxDecoration(
-                                      color: primaryColor,
+                                      color: ColorSelect.kBlue1,
                                       borderRadius: BorderRadius.circular(10.0),
                                       boxShadow: [
                                         BoxShadow(
@@ -1856,7 +1923,7 @@ class _RegisterPageState extends State<RegisterPage>
                                             decoration: BoxDecoration(
                                               color: Colors.white,
                                               borderRadius:
-                                                  BorderRadius.circular(10.0),
+                                              BorderRadius.circular(10.0),
                                               boxShadow: [
                                                 BoxShadow(
                                                   color: Colors.orange
@@ -1874,14 +1941,14 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                   Padding(
                                     padding:
-                                        EdgeInsets.only(left: 8.0, right: 8.sp),
+                                    EdgeInsets.only(left: 8.0, right: 8.sp),
                                     child: Container(
                                       width: double.infinity,
                                       height: 50.sp,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius:
-                                            BorderRadius.circular(10.0),
+                                        BorderRadius.circular(10.0),
                                         boxShadow: [
                                           BoxShadow(
                                             color: Colors.grey.withOpacity(0.5),
@@ -1900,12 +1967,12 @@ class _RegisterPageState extends State<RegisterPage>
                                               child: TextFormField(
                                                 controller: marksController,
                                                 keyboardType:
-                                                    TextInputType.name,
+                                                TextInputType.name,
                                                 style: GoogleFonts.poppins(
                                                   textStyle: TextStyle(
                                                       fontSize: 15.sp,
                                                       fontWeight:
-                                                          FontWeight.normal,
+                                                      FontWeight.normal,
                                                       color: Colors.black),
                                                 ),
                                                 decoration: InputDecoration(
@@ -1931,7 +1998,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 //   }
                                                 // },
                                                 textInputAction:
-                                                    TextInputAction.next,
+                                                TextInputAction.next,
                                                 // This sets the keyboard action to "Next"
                                                 onEditingComplete: () =>
                                                     FocusScope.of(context)
@@ -1955,7 +2022,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "Language",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -1963,14 +2030,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -1991,7 +2058,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.orange
@@ -2038,10 +2105,10 @@ class _RegisterPageState extends State<RegisterPage>
                                             // Removes border to rely on container styling
                                             hintText: 'Select Language',
                                             hintStyle:
-                                                TextStyle(color: Colors.black),
+                                            TextStyle(color: Colors.black),
                                             icon: Padding(
                                               padding:
-                                                  const EdgeInsets.all(8.0),
+                                              const EdgeInsets.all(8.0),
                                               child: Icon(Icons.language),
                                             )),
                                         value: selectedValue4,
@@ -2064,7 +2131,7 @@ class _RegisterPageState extends State<RegisterPage>
                             ),
 
                             SizedBox(
-                              height: 20.sp,
+                              height: 5.sp,
                             ),
 
                             Row(
@@ -2074,7 +2141,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   "State",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -2082,14 +2149,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -2145,26 +2212,26 @@ class _RegisterPageState extends State<RegisterPage>
                                       ],
                                     ),
                                     child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 8.0, right: 8.0),
-                                      child:DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value: selectedState,
-                                          hint: Text("Select a State"),
-                                          isExpanded: true,
-                                          items: states.map((String state) {
-                                            return DropdownMenuItem<String>(
-                                              value: state,
-                                              child: Text(state),
-                                            );
-                                          }).toList(),
-                                          onChanged: (String? newValue) {
-                                            setState(() {
-                                              selectedState = newValue;
-                                            });
-                                          },
-                                        ),
-                                      )
+                                        padding: const EdgeInsets.only(
+                                            left: 8.0, right: 8.0),
+                                        child:DropdownButtonHideUnderline(
+                                          child: DropdownButton<String>(
+                                            value: selectedState,
+                                            hint: Text("Select a State"),
+                                            isExpanded: true,
+                                            items: states.map((String state) {
+                                              return DropdownMenuItem<String>(
+                                                value: state,
+                                                child: Text(state),
+                                              );
+                                            }).toList(),
+                                            onChanged: (String? newValue) {
+                                              setState(() {
+                                                selectedState = newValue;
+                                              });
+                                            },
+                                          ),
+                                        )
 
                                     ),
                                   ),
@@ -2173,16 +2240,16 @@ class _RegisterPageState extends State<RegisterPage>
                             ),
 
                             SizedBox(
-                              height: 20.sp,
+                              height: 5.sp,
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Referral Code ",
+                                  "Referral Mentors Code ",
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
-                                        fontSize: 15.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black),
                                   ),
@@ -2190,14 +2257,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Text('')
                               ],
                             ),
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
                                   height: 50.sp,
                                   decoration: BoxDecoration(
-                                    color: primaryColor,
+                                    color: ColorSelect.kBlue1,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -2269,7 +2336,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                     color: Colors.black),
                                               ),
                                               decoration: InputDecoration(
-                                                hintText: 'Enter Referral Code',
+                                                hintText: 'Enter Referral Mentors Code',
                                                 border: InputBorder.none,
                                                 prefixIcon: Icon(
                                                     Icons.card_giftcard,
@@ -2292,9 +2359,7 @@ class _RegisterPageState extends State<RegisterPage>
                               ],
                             ),
 
-                            SizedBox(
-                              height: 10.sp,
-                            ),
+
 
 
                             SizedBox(height: 30.sp),
@@ -2308,16 +2373,13 @@ class _RegisterPageState extends State<RegisterPage>
                                       borderRadius: BorderRadius.circular(8.0),
                                       gradient: LinearGradient(
                                         colors: [
-                                          primaryColor2,
-                                          primaryColor,
+                                          ColorSelect.kBlue1,
+                                          ColorSelect.kBlue2,
+
                                         ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       ),
-                                      // borderRadius: BorderRadius.only(
-                                      //   bottomLeft: Radius.circular(50.sp),
-                                      //   bottomRight: Radius.circular(50.sp),
-                                      // ),
                                     ),
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
@@ -2367,83 +2429,102 @@ class _RegisterPageState extends State<RegisterPage>
                               ],
                             ),
 
-                            SizedBox(height: 20.sp),
-                            Container(
-                              height: 25.sp,
-                              child: Stack(
-                                children: [
-                                  Center(
-                                    child: Container(
-                                      height: 2,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.grey.shade100,
-                                            Colors.black54,
-                                            Colors.grey.shade100,
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Center(
-                                    child: Container(
-                                      color: Colors.white,
-                                      height: 25.sp,
-                                      width: 40.sp,
-                                      child: Center(
-                                        child: Text(
-                                          "OR",
-                                          style: GoogleFonts.poppins(
-                                            textStyle: TextStyle(
-                                                fontSize: 17.sp,
-                                                fontWeight: FontWeight.normal,
-                                                color: Colors.black),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 20.sp),
-                            Text.rich(TextSpan(
-                              text: "Already have an account ? ",
-                              style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: HexColor('#9ba3aa')),
-                              ),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: "Sign in",
-                                  style: GoogleFonts.poppins(
-                                    textStyle: TextStyle(
-                                        fontSize: 17.sp,
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.black),
-                                  ),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => LoginPage()),
-                                      );
-                                    },
-                                ),
-                              ],
-                            )),
-                            SizedBox(height: 20.sp),
+
                           ],
                         ),
                       ),
-                    )
+                    ),
+                    SizedBox(height: 20.sp),
+                    Padding(
+                      padding:  EdgeInsets.only(left: 28.sp,right: 28.sp),
+                      child: Container(
+                        height: 25.sp,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: Container(
+                                height: 1,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.grey.shade100,
+                                      Colors.black54,
+                                      Colors.grey.shade100,
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Container(
+                                height: 25.sp,
+                                width: 40.sp,
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+
+                                    borderRadius: BorderRadius.circular(10)
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "OR",
+                                    style: GoogleFonts.poppins(
+                                      textStyle: TextStyle(
+                                          fontSize: 17.sp,
+                                          fontWeight: FontWeight.normal,
+                                          color: Colors.black),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20.sp),
+                    Text.rich(TextSpan(
+                      text: "Already have an account ? ",
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.normal,
+                            color: HexColor('#9ba3aa')),
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: "Sign in",
+                          style: GoogleFonts.poppins(
+                            textStyle: TextStyle(
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.w800,
+                                decoration: TextDecoration.underline,
+                                color: Colors.white70),
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()),
+                              );
+                            },
+                        ),
+                      ],
+                    )),
+                    SizedBox(height: 20.sp),
+                  ],
+                ),
+              )
                   : SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(topRight: Radius.circular(10.sp),topLeft: Radius.circular(10.sp),bottomLeft: Radius.circular(10.sp),bottomRight: Radius.circular(10.sp))
+                      ),
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 0.sp),
+                        padding: EdgeInsets.symmetric(horizontal: 1.sp,vertical: 10.sp),
                         child: Column(
                           children: [
 
@@ -2468,7 +2549,7 @@ class _RegisterPageState extends State<RegisterPage>
                             ),
                             SizedBox(height: 10.sp),
                             Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
+                              padding: const EdgeInsets.only(left: 0.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -2500,7 +2581,7 @@ class _RegisterPageState extends State<RegisterPage>
                                       }).toList(),
                                     ),
                                   ),
-                                SizedBox(height: 10,)
+                                  SizedBox(height: 10,)
                                 ],
                               ),
                             ),
@@ -2537,7 +2618,7 @@ class _RegisterPageState extends State<RegisterPage>
                                     width: double.infinity,
                                     height: 50.sp,
                                     decoration: BoxDecoration(
-                                      color: primaryColor,
+                                      color: ColorSelect.kBlue1,
                                       borderRadius: BorderRadius.circular(10.0),
                                       boxShadow: [
                                         BoxShadow(
@@ -2648,7 +2729,7 @@ class _RegisterPageState extends State<RegisterPage>
 
 
 
-                            SizedBox(height: 10.sp),
+                            SizedBox(height: 5.sp),
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 20.sp),
                               child: Column(
@@ -2676,14 +2757,14 @@ class _RegisterPageState extends State<RegisterPage>
                                       Text('')
                                     ],
                                   ),
-                                  SizedBox(height: 10.sp),
+                                  SizedBox(height: 5.sp),
                                   Stack(
                                     children: [
                                       Container(
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -2704,7 +2785,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -2722,7 +2803,7 @@ class _RegisterPageState extends State<RegisterPage>
                                       ),
                                       Padding(
                                         padding:
-                                            EdgeInsets.only(left: 8.0, right: 8.sp),
+                                        EdgeInsets.only(left: 8.0, right: 8.sp),
                                         child: Container(
                                           width: double.infinity,
                                           height: 50.sp,
@@ -2751,7 +2832,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                       textStyle: TextStyle(
                                                           fontSize: 15.sp,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
                                                     decoration: InputDecoration(
@@ -2777,7 +2858,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                     //   }
                                                     // },
                                                     textInputAction:
-                                                        TextInputAction.next,
+                                                    TextInputAction.next,
                                                     // This sets the keyboard action to "Next"
                                                     onEditingComplete: () =>
                                                         FocusScope.of(context)
@@ -2845,7 +2926,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -2866,7 +2947,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -2909,13 +2990,13 @@ class _RegisterPageState extends State<RegisterPage>
                                                   child: TextFormField(
                                                     controller: emailController,
                                                     keyboardType:
-                                                        TextInputType.emailAddress,
+                                                    TextInputType.emailAddress,
 
                                                     style: GoogleFonts.poppins(
                                                       textStyle: TextStyle(
                                                           fontSize: 15.sp,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
                                                     decoration: InputDecoration(
@@ -2942,7 +3023,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                     //       : "Please enter a valid email";
                                                     // },
                                                     textInputAction:
-                                                        TextInputAction.next,
+                                                    TextInputAction.next,
                                                     // This sets the keyboard action to "Next"
                                                     onEditingComplete: () =>
                                                         FocusScope.of(context)
@@ -3011,7 +3092,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -3032,7 +3113,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -3050,7 +3131,7 @@ class _RegisterPageState extends State<RegisterPage>
                                       ),
                                       Padding(
                                         padding:
-                                            EdgeInsets.only(left: 8.0, right: 8.sp),
+                                        EdgeInsets.only(left: 8.0, right: 8.sp),
                                         child: Container(
                                           width: double.infinity,
                                           height: 50.sp,
@@ -3079,12 +3160,12 @@ class _RegisterPageState extends State<RegisterPage>
                                                       textStyle: TextStyle(
                                                           fontSize: 15.sp,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
                                                     decoration: InputDecoration(
                                                       hintText:
-                                                          'Enter your mobile number',
+                                                      'Enter your mobile number',
                                                       border: InputBorder.none,
                                                       prefixIcon: Icon(Icons.call,
                                                           color: Colors.black),
@@ -3105,7 +3186,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                     //   }
                                                     // },
                                                     textInputAction:
-                                                        TextInputAction.next,
+                                                    TextInputAction.next,
                                                     // This sets the keyboard action to "Next"
                                                     onEditingComplete: () =>
                                                         FocusScope.of(context)
@@ -3175,7 +3256,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -3196,7 +3277,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -3239,12 +3320,12 @@ class _RegisterPageState extends State<RegisterPage>
                                                   child: TextFormField(
                                                     controller: passwordController,
                                                     keyboardType:
-                                                        TextInputType.emailAddress,
+                                                    TextInputType.emailAddress,
                                                     style: GoogleFonts.poppins(
                                                       textStyle: TextStyle(
                                                           fontSize: 15.sp,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
                                                     decoration: InputDecoration(
@@ -3327,7 +3408,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -3348,7 +3429,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -3366,7 +3447,7 @@ class _RegisterPageState extends State<RegisterPage>
                                       ),
                                       Padding(
                                         padding:
-                                            EdgeInsets.only(left: 8.0, right: 8.sp),
+                                        EdgeInsets.only(left: 8.0, right: 8.sp),
                                         child: Container(
                                           width: double.infinity,
                                           height: 50.sp,
@@ -3395,7 +3476,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                       textStyle: TextStyle(
                                                           fontSize: 15.sp,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
                                                     decoration: InputDecoration(
@@ -3421,7 +3502,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                     //   }
                                                     // },
                                                     textInputAction:
-                                                        TextInputAction.next,
+                                                    TextInputAction.next,
                                                     // This sets the keyboard action to "Next"
                                                     onEditingComplete: () =>
                                                         FocusScope.of(context)
@@ -3459,7 +3540,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -3480,7 +3561,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -3498,7 +3579,7 @@ class _RegisterPageState extends State<RegisterPage>
                                       ),
                                       Padding(
                                         padding:
-                                            EdgeInsets.only(left: 8.0, right: 8.sp),
+                                        EdgeInsets.only(left: 8.0, right: 8.sp),
                                         child: Container(
                                           width: double.infinity,
                                           height: 50.sp,
@@ -3522,18 +3603,18 @@ class _RegisterPageState extends State<RegisterPage>
                                                       horizontal: 8.0),
                                                   child: TextFormField(
                                                     controller:
-                                                        highestqualificationController,
+                                                    highestqualificationController,
                                                     keyboardType: TextInputType.name,
                                                     style: GoogleFonts.poppins(
                                                       textStyle: TextStyle(
                                                           fontSize: 15.sp,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
                                                     decoration: InputDecoration(
                                                       hintText:
-                                                          'Enter your Highest Qualification',
+                                                      'Enter your Highest Qualification',
                                                       border: InputBorder.none,
                                                       prefixIcon: Icon(
                                                           Icons.account_circle,
@@ -3555,7 +3636,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                     //   }
                                                     // },
                                                     textInputAction:
-                                                        TextInputAction.next,
+                                                    TextInputAction.next,
                                                     // This sets the keyboard action to "Next"
                                                     onEditingComplete: () =>
                                                         FocusScope.of(context)
@@ -3593,7 +3674,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -3614,7 +3695,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -3632,7 +3713,7 @@ class _RegisterPageState extends State<RegisterPage>
                                       ),
                                       Padding(
                                         padding:
-                                            EdgeInsets.only(left: 8.0, right: 8.sp),
+                                        EdgeInsets.only(left: 8.0, right: 8.sp),
                                         child: Container(
                                           width: double.infinity,
                                           height: 50.sp,
@@ -3656,18 +3737,18 @@ class _RegisterPageState extends State<RegisterPage>
                                                       horizontal: 8.0),
                                                   child: TextFormField(
                                                     controller:
-                                                        teachingExperienceController,
+                                                    teachingExperienceController,
                                                     keyboardType: TextInputType.name,
                                                     style: GoogleFonts.poppins(
                                                       textStyle: TextStyle(
                                                           fontSize: 15.sp,
                                                           fontWeight:
-                                                              FontWeight.normal,
+                                                          FontWeight.normal,
                                                           color: Colors.black),
                                                     ),
                                                     decoration: InputDecoration(
                                                       hintText:
-                                                          'Enter your teaching experience ',
+                                                      'Enter your teaching experience ',
                                                       border: InputBorder.none,
                                                       prefixIcon: Icon(
                                                           Icons.account_circle,
@@ -3689,7 +3770,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                     //   }
                                                     // },
                                                     textInputAction:
-                                                        TextInputAction.next,
+                                                    TextInputAction.next,
                                                     // This sets the keyboard action to "Next"
                                                     onEditingComplete: () =>
                                                         FocusScope.of(context)
@@ -3727,7 +3808,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         width: double.infinity,
                                         height: 50.sp,
                                         decoration: BoxDecoration(
-                                          color: primaryColor,
+                                          color: ColorSelect.kBlue1,
                                           borderRadius: BorderRadius.circular(10.0),
                                           boxShadow: [
                                             BoxShadow(
@@ -3748,7 +3829,7 @@ class _RegisterPageState extends State<RegisterPage>
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(10.0),
+                                                  BorderRadius.circular(10.0),
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: Colors.orange
@@ -3795,10 +3876,10 @@ class _RegisterPageState extends State<RegisterPage>
                                                   // Removes border to rely on container styling
                                                   hintText: 'Select Language',
                                                   hintStyle:
-                                                      TextStyle(color: Colors.black),
+                                                  TextStyle(color: Colors.black),
                                                   icon: Padding(
                                                     padding:
-                                                        const EdgeInsets.all(8.0),
+                                                    const EdgeInsets.all(8.0),
                                                     child: Icon(Icons.language),
                                                   )),
                                               value: selectedValue4,
@@ -3831,8 +3912,9 @@ class _RegisterPageState extends State<RegisterPage>
                                             borderRadius: BorderRadius.circular(8.0),
                                             gradient: LinearGradient(
                                               colors: [
-                                                primaryColor2,
-                                                primaryColor,
+                                               ColorSelect.kBlue1,
+                                               ColorSelect.kBlue2,
+
                                               ],
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
@@ -3890,76 +3972,7 @@ class _RegisterPageState extends State<RegisterPage>
                                     ],
                                   ),
 
-                                  SizedBox(height: 20.sp),
-                                  Container(
-                                    height: 25.sp,
-                                    child: Stack(
-                                      children: [
-                                        Center(
-                                          child: Container(
-                                            height: 2,
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  Colors.grey.shade100,
-                                                  Colors.black54,
-                                                  Colors.grey.shade100,
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Center(
-                                          child: Container(
-                                            color: Colors.white,
-                                            height: 25.sp,
-                                            width: 40.sp,
-                                            child: Center(
-                                              child: Text(
-                                                "OR",
-                                                style: GoogleFonts.poppins(
-                                                  textStyle: TextStyle(
-                                                      fontSize: 17.sp,
-                                                      fontWeight: FontWeight.normal,
-                                                      color: Colors.black),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(height: 20.sp),
-                                  Text.rich(TextSpan(
-                                    text: "Already have an account ? ",
-                                    style: GoogleFonts.poppins(
-                                      textStyle: TextStyle(
-                                          fontSize: 14.sp,
-                                          fontWeight: FontWeight.bold,
-                                          color: HexColor('#9ba3aa')),
-                                    ),
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                        text: "Sign in",
-                                        style: GoogleFonts.poppins(
-                                          textStyle: TextStyle(
-                                              fontSize: 17.sp,
-                                              fontWeight: FontWeight.normal,
-                                              color: Colors.black),
-                                        ),
-                                        recognizer: TapGestureRecognizer()
-                                          ..onTap = () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) => LoginPage()),
-                                            );
-                                          },
-                                      ),
-                                    ],
-                                  )),
-                                  SizedBox(height: 20.sp),
+
                                 ],
                               ),
                             ),
@@ -3967,6 +3980,88 @@ class _RegisterPageState extends State<RegisterPage>
                         ),
                       ),
                     ),
+
+                    SizedBox(height: 20.sp),
+                    Padding(
+                      padding:  EdgeInsets.only(left: 28.sp,right: 28.sp),
+                      child: Container(
+                        height: 25.sp,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: Container(
+                                height: 1,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.grey.shade100,
+                                      Colors.black54,
+                                      Colors.grey.shade100,
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Container(
+                                height: 25.sp,
+                                width: 40.sp,
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+
+                                    borderRadius: BorderRadius.circular(10)
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "OR",
+                                    style: GoogleFonts.poppins(
+                                      textStyle: TextStyle(
+                                          fontSize: 17.sp,
+                                          fontWeight: FontWeight.normal,
+                                          color: Colors.black),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20.sp),
+                    Text.rich(TextSpan(
+                      text: "Already have an account ? ",
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.normal,
+                            color: HexColor('#9ba3aa')),
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: "Sign in",
+                          style: GoogleFonts.poppins(
+                            textStyle: TextStyle(
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.w800,
+                                decoration: TextDecoration.underline,
+                                color: Colors.white70),
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()),
+                              );
+                            },
+                        ),
+                      ],
+                    )),
+                    SizedBox(height: 20.sp),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

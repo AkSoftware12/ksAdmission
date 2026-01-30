@@ -68,20 +68,6 @@ class _TestPaperListState extends State<PrvicesPaperList> {
   List<dynamic> paper = [];
   String userPlanStatus = '';
 
-  final List<TestPaperModel> competition = [
-    TestPaperModel(
-      title: 'NEET',
-      subtitle: 'subtitle',
-      image: 'assets/neet.png',
-      backgroundColor: primaryColor,
-    ),
-    TestPaperModel(
-      title: 'SSC',
-      subtitle: 'subtitle',
-      image: 'assets/ssc.jpg',
-      backgroundColor: primaryColor,
-    ),
-  ];
 
   @override
   void initState() {

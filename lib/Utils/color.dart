@@ -11,7 +11,7 @@ class ColorSelect {
   static const background=Colors.white;
   static const headingColor=Colors.grey;
   static const redColor=Colors.redAccent;
-
-
+  static const Color kBlue1 = Color(0xFF080777);
+  static const Color kBlue2 = Color(0xF40A85FF);
 
 }

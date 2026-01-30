@@ -2,8 +2,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,14 +14,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import 'package:stream_chat_localizations/stream_chat_localizations.dart';
-import 'package:upgrader/upgrader.dart';
 import 'DarkMode/dark_mode.dart';
 import 'DashBoardTeacher/home_bootom_teacher.dart';
 import 'HomePage/home_page.dart';
 import 'LoginPage/login_page.dart';
-import 'Notification/notification.dart';
+import 'SplashScreen/splash_screen.dart';
 import 'Utils/app_colors.dart';
 import 'Utils/image.dart';
 import 'Utils/string.dart';
@@ -42,23 +37,9 @@ class MyHttpOverrides extends HttpOverrides{
   }
 }
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("📩 Background Notification: ${message.notification?.title}");
-  if (message.notification?.title == 'Video Call') {
-    navigatorKey.currentState?.push(
-      MaterialPageRoute(builder: (context) => CallScreen()),
-    );  }
-
-}
 Future main() async {
   HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
-  // await Upgrader.clearSavedSettings();
-  // setUpLocator();
-  // Gemini.init(
-  //   apiKey: 'AIzaSyAeiY-nqd8-gmnBHoyK3RVthCahU2rFvmw',
-  // );
-
   Platform.isAndroid ? await Firebase.initializeApp(
     options: kIsWeb || Platform.isAndroid
         ? const FirebaseOptions(
@@ -78,7 +59,6 @@ Future main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await FirebaseAppCheck.instance.activate();
   NotificationService.initNotifications();
 
   runApp(
@@ -87,9 +67,8 @@ Future main() async {
       child:  MyApp(),
     ),
   );
-
-  // FlutterNativeSplash.remove();
 }
+
 
 class MyApp extends StatelessWidget {
   final RouteObserver<PageRoute> _routeObserver = RouteObserver();
@@ -98,13 +77,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // SystemChrome.setSystemUIOverlayStyle(
-    //   SystemUiOverlayStyle(
-    //     statusBarColor: primaryColor, // Set the color you want
-    //     systemNavigationBarColor: Colors.blue, // Navigation bar color
-    //     systemStatusBarContrastEnforced: false, // For contrast
-    //   ),
-    // );
     return   Portal(
       child: Provider.value(
         value: _routeObserver,
@@ -112,7 +84,6 @@ class MyApp extends StatelessWidget {
           designSize: const Size(360, 690),
           minTextAdapt: true,
           splitScreenMode: true,
-          // Use builder only if you need to use library outside ScreenUtilInit context
           builder: (_ , child) {
             return MaterialApp(
               navigatorKey: navigatorKey, // Add this line
@@ -120,7 +91,7 @@ class MyApp extends StatelessWidget {
               home:  child,
             );
           },
-          child:  AuthenticationWrapper(),
+          child:  SplashScreen(),
         ),
 
       ),
@@ -135,6 +106,8 @@ class MyApp extends StatelessWidget {
 
 
 class AuthenticationWrapper extends StatefulWidget {
+  const AuthenticationWrapper({super.key});
+
 
 
   @override
@@ -202,11 +175,6 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
         context,
         MaterialPageRoute(builder: (context) => Homepage(initialIndex: 0,)),
       );
-
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => HomeScreen()),
-      // );
 
       if(_imageUrl !='')
       _showWelcomeDialog();
@@ -350,9 +318,7 @@ class NotificationService {
     print("📩 Foreground Notification: ${message.notification?.title}");
 
     if (message.notification?.title == 'Video Call') {
-      Future.delayed(Duration(seconds: 2), () {
-        _openCallScreen();
-      });
+
     } else {
       _showLocalNotification(message);
     }
@@ -362,31 +328,15 @@ class NotificationService {
   static void _onMessageOpenedApp(RemoteMessage message) {
     print("📩 Notification Clicked: ${message.notification?.title}");
 
-    if (message.notification?.title == 'Video Call') {
-      _openCallScreen();
-    } else {
-      // navigatorKey.currentState?.push(
-      //   MaterialPageRoute(builder: (context) => NotificationScreen()),
-      // );
-    }
   }
 
-  /// **🔹 Open Call Screen**
-  static void _openCallScreen() {
-    navigatorKey.currentState?.push(
-      MaterialPageRoute(builder: (context) => CallScreen()),
-    );
-  }
+
 
   /// **🔹 Handle Background Notifications**
   static Future<void> _onBackgroundMessage(RemoteMessage message) async {
     print("📩 Background Notification: ${message.notification?.title}");
 
-    if (message.notification?.title == 'Video Call') {
-      navigatorKey.currentState?.push(
-        MaterialPageRoute(builder: (context) => CallScreen()),
-      );
-    }
+
   }
 
   /// **🔹 Initialize Local Notifications**
@@ -397,9 +347,7 @@ class NotificationService {
     _flutterLocalNotificationsPlugin.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
-        if (response.payload == 'Video Call') {
-          _openCallScreen();
-        }
+
       },
     );
   }
@@ -434,131 +382,5 @@ class NotificationService {
 
 
 
-class CallScreen extends StatefulWidget {
-  @override
-  _CallScreenState createState() => _CallScreenState();
-}
-
-class _CallScreenState extends State<CallScreen> {
-  static final AudioPlayer _audioPlayer = AudioPlayer();
-  late Timer _autoDismissTimer;
-  bool _isRingtonePlaying = false; // Track if ringtone is playing
-
-  @override
-  void initState() {
-    super.initState();
-    _playRingtone();
-
-    // Auto close screen after 20 seconds if no action is taken
-    _autoDismissTimer = Timer(Duration(seconds: 20), () async {
-      if (mounted) {
-        await _stopRingtone();
-        Navigator.pop(context); // Close screen automatically
-      }
-    });
-  }
-
-  Future<void> _playRingtone() async {
-    if (!_isRingtonePlaying) {  // Ensure ringtone is not already playing
-      try {
-        await _audioPlayer.setSource(AssetSource("phone_rington.mp3"));
-        await _audioPlayer.play(AssetSource("phone_rington.mp3"));
-        _isRingtonePlaying = true; // Mark as playing
-      } catch (e) {
-        print("Error playing ringtone: $e");
-      }
-    }
-  }
-
-  Future<void> _stopRingtone() async {
-    if (_isRingtonePlaying) {
-      await _audioPlayer.stop();
-      _isRingtonePlaying = false; // Reset flag
-    }
-  }
-
-  @override
-  void dispose() {
-    _autoDismissTimer.cancel();
-    _stopRingtone();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 100.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: AssetImage("assets/user.png"),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    "John Doe",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    "Incoming Call...",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 50.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  FloatingActionButton(
-                    onPressed: () async {
-                      await _stopRingtone();
-                      Navigator.pop(context);
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => VideoCallScreen(id: '',),
-                      //   ),
-                      // );
-                    },
-                    child: Icon(Icons.call, size: 30, color: Colors.white),
-                    backgroundColor: Colors.green,
-                  ),
-                  FloatingActionButton(
-                    onPressed: () async {
-                      await _stopRingtone();
-                      Navigator.pop(context);
-                    },
-                    child: Icon(Icons.call_end, size: 30, color: Colors.white),
-                    backgroundColor: Colors.red,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 

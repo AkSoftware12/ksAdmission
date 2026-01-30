@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HomeScreen/Year/SubjectScreen/webView.dart';
 import '../baseurl/baseurl.dart';
 
@@ -63,222 +64,535 @@ class _TeacherProfileScreenState extends State<ProfileTeacherScreen> {
         happy_student = jsonData['data']['happy_student'].toString() ?? '';
         avg_rating = jsonData['data']['avg_rating'].toString() ?? '';
         Reviews = jsonData['data']['review_Count'].toString() ?? '';
-
       });
     } else {
       throw Exception('Failed to load profile data');
     }
   }
 
+  // ---------- UI Helpers ----------
+  static const _g1 = Color(0xFF010071);
+  static const _g2 = Color(0xFF0A1AFF);
+  static const _surface = Color(0xFFFFFFFF);
+
+  String _safe(String v, {String fallback = "—"}) {
+    final x = v.trim();
+    return x.isEmpty ? fallback : x;
+  }
+
+  TextStyle get _titleStyle => GoogleFonts.poppins(
+    fontSize: 14.sp,
+    fontWeight: FontWeight.w700,
+    color: const Color(0xFF0B0F1A),
+  );
+
+  TextStyle get _subStyle => GoogleFonts.poppins(
+    fontSize: 12.sp,
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFF6B7280),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade100,
+      backgroundColor: const Color(0xFFF6F8FF),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileCard(),
+          ? const Center(child: PrimaryCircularProgressWidget())
+          : CustomScrollView(
+        slivers: [
 
-            _buildInfoSection("Contact", contact, Icons.phone),
-            _buildInfoSection("Address", address, Icons.location_on),
-            _buildInfoSection("Subject", subjectSpecialization, Icons.book),
-            _buildInfoSection("Languages", language, Icons.language),
-            SizedBox(height: 10,),
-            // _buildWalletBalance(),
-            _buildStatRow(),
-            _buildAboutSection(),
-          ],
-        ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(5.w, 5.h, 5.w, 5.h),
+              child: Column(
+                children: [
+                  _buildProfileCard(),
+                  SizedBox(height: 12.h),
+
+                  _buildInfoSection("Contact", contact, Icons.phone),
+                  _buildInfoSection(
+                      "Address", address, Icons.location_on),
+                  _buildInfoSection(
+                      "Subject", subjectSpecialization, Icons.book),
+                  _buildInfoSection(
+                      "Languages", language, Icons.language),
+
+                  SizedBox(height: 12.h),
+                  _buildStatRow(),
+
+                  SizedBox(height: 14.h),
+                  _buildAboutSection(),
+                  SizedBox(height: 18.h),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
+
+  // ---------- Card ----------
   Widget _buildProfileCard() {
-    return Card(
-      elevation: 5,
+    return Container(
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(5.r),
+        border: Border.all(color: Colors.blue,width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.08),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: EdgeInsets.all(5.w),
         child: Column(
           children: [
             Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: photoUrl,
-                    width: MediaQuery.of(context).size.width*0.2,
-                    height: MediaQuery.of(context).size.height*0.1,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey,
-                      // Placeholder color
-                      // You can customize the default image as needed
-                      child: Icon(
-                        Icons.image,
-                        color: Colors.white,
-                      ),
-                    )
+                // avatar with ring
+                Container(
+                  padding: EdgeInsets.all(3.w),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [_g1, _g2],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          nickname,
-                          style: GoogleFonts.poppins(
-                              fontSize: 16.sp, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          userEmail,
-                          style: GoogleFonts.poppins(
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blueGrey),
-                        ),
-                        Text(
-                          qualification,
-                          style: GoogleFonts.poppins(
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blueGrey),
-                        ),
-                        const SizedBox(height: 8), // Space between text and buttons
-                      ],
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(13.r),
+                    child: CachedNetworkImage(
+                      imageUrl: photoUrl,
+                      width: 62.w,
+                      height: 62.w,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                      const PrimaryCircularProgressWidget(),
+                      errorWidget: (context, url, error) => Container(
+                        width: 62.w,
+                        height: 62.w,
+                        color: const Color(0xFFE5E7EB),
+                        child: Icon(Icons.person, size: 28.sp),
+                      ),
                     ),
                   ),
                 ),
-
-              ],
-            ),
-            Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Handle edit profile action
-                  },
-                  icon: Icon(Icons.edit, size: 12.sp),
-                  label: Text("Edit Profile",style: TextStyle(fontSize: MediaQuery.of(context).size.width*0.03),),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Handle wallet action
-                  },
-                  icon: Icon(Icons.account_balance_wallet, size: 12.sp),
-                  label: Column(
-                    mainAxisSize: MainAxisSize.min,
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Wallet",style: TextStyle(fontSize: MediaQuery.of(context).size.width*0.03)),
-                      SizedBox(width: 8), // Space between text and price
+
+                      /// 👤 Name
                       Row(
                         children: [
-                          Icon(Icons.currency_rupee, size: 12.sp),
-                          Text("100.00", style: TextStyle(fontWeight: FontWeight.bold,fontSize: MediaQuery.of(context).size.width*0.03)),
+
+                          Expanded(
+                            child: Text(
+                              _safe(nickname, fallback: "Teacher"),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF0B0F1A),
+                              ),
+                            ),
+                          ),
                         ],
-                      ), // Price
+                      ),
+
+                      SizedBox(height: 6.h),
+
+                      /// 📧 Email
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.email_outlined,
+                            size: 14.sp,
+                            color: const Color(0xFF64748B),
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: Text(
+                              _safe(userEmail),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 4.h),
+
+                      /// 🎓 Qualification
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.school_rounded,
+                            size: 14.sp,
+                            color: const Color(0xFF64748B),
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: Text(
+                              _safe(qualification),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
                 ),
-
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PdfViewerPage(
-                          url: 'https://apiweb.ksadmission.in/upload/banners/pdf/1767180621_ks_am-compressed.pdf',
-                          title: 'All Teachers List',
-                          category: '',
-                          Subject: '',
-                        ),
-                      ),
-                    );
-
-                  },
-                  icon: Icon(Icons.person, size: 12.sp),
-                  label: Text("All Teachers", style: TextStyle(fontWeight: FontWeight.bold,fontSize: MediaQuery.of(context).size.width*0.03)),
-
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-
-
               ],
             ),
 
+            SizedBox(height: 12.h),
+
+            // Buttons (same actions)
+            Row(
+              children: [
+                // Expanded(
+                //   child: _actionButton(
+                //     bg: const Color(0xFF2563EB),
+                //     icon: Icons.edit,
+                //     title: "Edit Profile",
+                //     sub: "Update info",
+                //     onTap: () {
+                //       // Handle edit profile action
+                //     },
+                //   ),
+                // ),
+                // SizedBox(width: 5.w),
+                Expanded(
+                  child: _actionButton(
+                    bg: const Color(0xFF16A34A),
+                    icon: Icons.account_balance_wallet,
+                    title: "Wallet",
+                    sub: "₹ 0.00",
+                    onTap: () {
+                      // Handle wallet action
+                    },
+                  ),
+                ),
+                SizedBox(width: 5.w),
+                Expanded(
+                  child: _actionButton(
+                    bg: const Color(0xFFFB923C),
+                    icon: Icons.people_alt_rounded,
+                    title: "All Teachers",
+                    sub: "PDF List",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PdfViewerPage(
+                            url:
+                            'https://apiweb.ksadmission.in/upload/banners/pdf/1767180621_ks_am-compressed.pdf',
+                            title: 'All Teachers List',
+                            category: '',
+                            Subject: '',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-
-
-  Widget _buildStatRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildStatItem("$experience Years", "Experience", Icons.work_history_outlined),
-        _buildStatItem("$happy_student", "Happy Students", Icons.emoji_emotions),
-        _buildStatItem("$avg_rating", "Rating", Icons.star),
-        _buildStatItem("$Reviews", "Reviews", Icons.reviews),
-
-      ],
-    );
-  }
-
-  Widget _buildStatItem(String value, String label, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.black, size: 20.sp),
-        SizedBox(height: 8),
-        Text(value, style: GoogleFonts.poppins(fontSize:  MediaQuery.of(context).size.width*0.03, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-        Text(label, style: GoogleFonts.poppins(fontSize:  MediaQuery.of(context).size.width*0.03, fontWeight: FontWeight.w600, color: Colors.blueGrey)),
-      ],
-    );
-  }
-
-  Widget _buildInfoSection(String title, String value, IconData icon) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-      child: Card(
-        elevation: 3,
-        child: ListTile(
-          leading: Icon(icon, color: Colors.blueGrey),
-          title: Text(title, style: GoogleFonts.poppins(fontSize:  MediaQuery.of(context).size.width*0.035, fontWeight: FontWeight.bold)),
-          subtitle: Text(value, style: GoogleFonts.poppins(fontSize:  MediaQuery.of(context).size.width*0.03, color: Colors.blueGrey)),
+  Widget _actionButton({
+    required Color bg,
+    required IconData icon,
+    required String title,
+    required String sub,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(5.r),
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(5.r),
+          boxShadow: [
+            BoxShadow(
+              color: bg.withOpacity(.35),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(.18),
+                borderRadius: BorderRadius.circular(5.r),
+              ),
+              child: Icon(icon, color: Colors.white, size: 16.sp),
+            ),
+            SizedBox(width: 5.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    sub,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildAboutSection() {
+  // ---------- Stats ----------
+  Widget _buildStatRow() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(18.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.06),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: _buildStatItem(
+              value: "${_safe(experience, fallback: "0")} Years",
+              label: "Experience",
+              icon: Icons.work_history_outlined,
+            ),
+          ),
+          _vDivider(),
+          Expanded(
+            child: _buildStatItem(
+              value: _safe(happy_student, fallback: "0"),
+              label: "Happy",
+              icon: Icons.emoji_emotions_rounded,
+            ),
+          ),
+          _vDivider(),
+          Expanded(
+            child: _buildStatItem(
+              value: _safe(avg_rating, fallback: "0"),
+              label: "Rating",
+              icon: Icons.star_rounded,
+            ),
+          ),
+          _vDivider(),
+          Expanded(
+            child: _buildStatItem(
+              value: _safe(Reviews, fallback: "0"),
+              label: "Reviews",
+              icon: Icons.reviews_rounded,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _vDivider() {
+    return Container(
+      width: 1.w,
+      height: 42.h,
+      margin: EdgeInsets.symmetric(horizontal: 8.w),
+      color: const Color(0xFFE5E7EB),
+    );
+  }
+
+  Widget _buildStatItem({
+    required String value,
+    required String label,
+    required IconData icon,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: EdgeInsets.all(8.w),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [_g1.withOpacity(.10), _g2.withOpacity(.10)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Icon(icon, color: const Color(0xFF0B2BFF), size: 18.sp),
+        ),
+        SizedBox(height: 8.h),
+        Text(
+          value,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0B0F1A),
+          ),
+        ),
+        SizedBox(height: 2.h),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF64748B),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------- Info Sections ----------
+  Widget _buildInfoSection(String title, String value, IconData icon) {
+    final v = _safe(value);
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.only(top: 10.h),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(.05),
+              blurRadius: 14,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ListTile(
+          contentPadding:
+          EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          leading: Container(
+            width: 42.w,
+            height: 42.w,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_g1.withOpacity(.10), _g2.withOpacity(.10)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Icon(icon, color: const Color(0xFF0B2BFF), size: 20.sp),
+          ),
+          title: Text(title, style: _titleStyle),
+          subtitle: Padding(
+            padding: EdgeInsets.only(top: 4.h),
+            child: Text(
+              v,
+              style: _subStyle,
+            ),
+          ),
+          trailing: Icon(Icons.chevron_right_rounded,
+              color: Colors.black.withOpacity(.35)),
+        ),
+      ),
+    );
+  }
+
+  // ---------- About ----------
+  Widget _buildAboutSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(18.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.06),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("About Me", style: GoogleFonts.poppins(fontSize:  MediaQuery.of(context).size.width*0.035, fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
-          Text(bio, style: GoogleFonts.poppins(fontSize:  MediaQuery.of(context).size.width*0.03, color: Colors.blueGrey)),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [_g1.withOpacity(.10), _g2.withOpacity(.10)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Icon(Icons.info_outline_rounded,
+                    size: 18.sp, color: const Color(0xFF0B2BFF)),
+              ),
+              SizedBox(width: 10.w),
+              Text("About Me", style: _titleStyle),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            _safe(bio, fallback: "No bio added yet."),
+            style: _subStyle,
+          ),
         ],
       ),
     );

@@ -26,46 +26,6 @@ class _StateWiseRankScreenState extends State<StateWiseRankScreen> {
   String? selectedState;
   int? _selectedOption=0;
 
-  bool _isChecked = false; // Tracks checkbox state
-
-  // final List<String> stateList = [
-  //   'Andhra Pradesh',
-  //   'Arunachal Pradesh',
-  //   'Assam',
-  //   'Bihar',
-  //   'Chhattisgarh',
-  //   'Goa',
-  //   'Gujarat',
-  //   'Haryana',
-  //   'Himachal Pradesh',
-  //   'Jharkhand',
-  //   'Karnataka',
-  //   'Kerala',
-  //   'Madhya Pradesh',
-  //   'Maharashtra',
-  //   'Manipur',
-  //   'Meghalaya',
-  //   'Mizoram',
-  //   'Nagaland',
-  //   'Odisha',
-  //   'Punjab',
-  //   'Rajasthan',
-  //   'Sikkim',
-  //   'Tamil Nadu',
-  //   'Telangana',
-  //   'Tripura',
-  //   'Uttar Pradesh',
-  //   'Uttarakhand',
-  //   'West Bengal',
-  //   'Andaman and Nicobar Islands',
-  //   'Chandigarh',
-  //   'Dadra and Nagar Haveli and Daman and Diu',
-  //   'Delhi',
-  //   'Jammu and Kashmir',
-  //   'Ladakh',
-  //   'Lakshadweep',
-  //   'Puducherry'
-  // ];
 
   void _findColleges() {
     if (selectedState == null) {
@@ -74,12 +34,6 @@ class _StateWiseRankScreenState extends State<StateWiseRankScreen> {
       );
       return;
     }
-    // if (rankController.text.isEmpty) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Please enter your Rank')),
-    //   );
-    //   return;
-    // }
     if (!_isAgreed) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -87,12 +41,6 @@ class _StateWiseRankScreenState extends State<StateWiseRankScreen> {
       );
       return;
     }
-    // if (!RegExp(r'^\d+$').hasMatch(rankController.text)) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Please enter valid Rank (numbers only)')),
-    //   );
-    //   return;
-    // }
 
     // Navigate to the next screen
     Navigator.push(

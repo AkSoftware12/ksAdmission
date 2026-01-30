@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../Download/download.dart';
 import '../Help/help.dart';
 import '../HexColorCode/HexColor.dart';
@@ -212,8 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Colors.orangeAccent,
+              PrimaryCircularProgressWidget(
               ),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),
@@ -1690,7 +1690,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
-              CircularProgressIndicator(),
+              PrimaryCircularProgressWidget(),
               SizedBox(height: 20),
               Text("Please wait...")
             ],
@@ -1939,7 +1939,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.asset(
-                  'assets/payment_failed.png',
+                  'assets/payment_failed.jpeg',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -1989,8 +1989,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: primaryColor,
+              PrimaryCircularProgressWidget(
               ),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),

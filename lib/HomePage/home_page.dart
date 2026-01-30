@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:new_version_plus/new_version_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:realestate/HexColorCode/HexColor.dart';
 import 'package:secure_content/secure_content.dart';
@@ -13,11 +15,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../Utils/string.dart';
 import '../../Utils/textSize.dart';
 import '../CommonCalling/Common.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../Download/download.dart';
 import '../FAQ/faq.dart';
-import '../FAQ/faq_tab.dart';
 import '../Help/help.dart';
-import '../HomeScreen/LiveClass/live_class_screen.dart';
 import '../HomeScreen/home_screen.dart';
 import '../Library/library.dart';
 import '../LoginPage/login_page.dart';
@@ -26,6 +27,7 @@ import '../Plan/plan.dart';
 import '../Profile/DoubtSessionTab/doubt_session_tab.dart';
 import '../Profile/profile_screen.dart';
 import '../ResetPassword/reset_password.dart';
+import '../SplashScreen/splash_screen.dart';
 import '../Utils/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -61,6 +63,10 @@ class _HomeBottomNavigationState extends State<Homepage> {
   GlobalKey bottomNavigationKey = GlobalKey();
   bool _isLoading = false;
 
+  String currentVersion = '';
+  String release = "";
+  bool _upgradeDialogShown = false;
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -80,6 +86,80 @@ class _HomeBottomNavigationState extends State<Homepage> {
         }
       });
     });
+
+    checkForVersion(context);
+
+    final newVersion = NewVersionPlus(
+      iOSId: 'com.ksadmission',
+      androidId: 'com.ksadmission',
+      androidPlayStoreCountry: "es_ES",
+      androidHtmlReleaseNotes: true,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      advancedStatusCheck(newVersion); // ✅ now context is ready
+    });
+  }
+
+  basicStatusCheck(NewVersionPlus newVersion) async {
+    final version = await newVersion.getVersionStatus();
+    if (version != null) {
+      release = version.releaseNotes ?? "";
+      setState(() {});
+    }
+    newVersion.showAlertIfNecessary(
+      context: context,
+      launchModeVersion: LaunchModeVersion.external,
+    );
+  }
+
+  Future<void> advancedStatusCheck(NewVersionPlus newVersion) async {
+    try {
+      final status = await newVersion.getVersionStatus();
+      if (status == null) return;
+
+      debugPrint("releaseNotes: ${status.releaseNotes}");
+      debugPrint("appStoreLink: ${status.appStoreLink}");
+      debugPrint("localVersion: ${status.localVersion}");
+      debugPrint("storeVersion: ${status.storeVersion}");
+      debugPrint("canUpdate: ${status.canUpdate}");
+
+      if (!status.canUpdate) return;
+      if (_upgradeDialogShown) return;
+      if (!mounted) return;
+
+      _upgradeDialogShown = true;
+
+      showDialog(
+        context: context, // ✅ yahi best hai
+        barrierDismissible: false,
+        builder: (dialogCtx) {
+          return PopScope( // ✅ WillPopScope new replacement (Flutter 3.13+)
+            canPop: false,
+            onPopInvoked: (didPop) {
+              SystemNavigator.pop();
+            },
+            child: CustomUpgradeDialog(
+              currentVersion: status.localVersion,
+              newVersion: status.storeVersion,
+              releaseNotes: [
+                (status.releaseNotes ?? "").trim().isEmpty
+                    ? "New update available."
+                    : status.releaseNotes!.trim(),
+              ],
+            ),
+          );
+        },
+      );
+    } catch (e, st) {
+      debugPrint("advancedStatusCheck error: $e");
+      debugPrint("$st");
+    }
+  }
+  Future<void> checkForVersion(BuildContext context) async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    currentVersion = packageInfo.version;
   }
 
   void showImageDialog(BuildContext context) {
@@ -159,7 +239,7 @@ class _HomeBottomNavigationState extends State<Homepage> {
     // Replace with your image file path
     final ByteData bytes = await rootBundle.load(logo);
     final Directory directory = await getTemporaryDirectory();
-    final File file = File('${directory.path}/logo.png');
+    final File file = File('${directory.path}/logo2.png');
 
     // Write the bytes to the file
     await file.writeAsBytes(bytes.buffer.asUint8List());
@@ -210,9 +290,8 @@ class _HomeBottomNavigationState extends State<Homepage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: primaryColor),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+              PrimaryCircularProgressWidget(),
+
             ],
           ),
         );
@@ -338,47 +417,6 @@ class _HomeBottomNavigationState extends State<Homepage> {
                 ],
               ),
               actions: [
-                Builder(
-                  builder: (context) => Padding(
-                    padding: EdgeInsets.all(8.sp),
-                    child: GestureDetector(
-                      onTap: () {
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                LiveClassUserScreen(),
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        Icons.live_tv,
-                        color: Colors.white,
-                        size: 22.sp,
-                      ),
-                    ),
-                  ), // Ensure Scaffold is in context
-                ),
-
-                // Builder(
-                //   builder: (context) => Padding(
-                //     padding: EdgeInsets.all(8.sp),
-                //     child: GestureDetector(
-                //       onTap: () {
-                //         Navigator.push(
-                //           context,
-                //           MaterialPageRoute(
-                //             builder: (context) {
-                //               return FaqTabScreen();
-                //             },
-                //           ),
-                //         );
-                //       },
-                //       child: Icon(Icons.help, color: Colors.white, size: 22.sp),
-                //     ),
-                //   ), // Ensure Scaffold is in context
-                // ),
 
                 Padding(
                   padding: const EdgeInsets.only(right: 10.0),
@@ -481,7 +519,8 @@ class _HomeBottomNavigationState extends State<Homepage> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               width: MediaQuery.sizeOf(context).width * .65,
               // backgroundColor: Theme.of(context).colorScheme.background,
-              backgroundColor: primaryColor,
+              // backgroundColor: primaryColor,
+              backgroundColor: HexColor('#010071'),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -569,7 +608,6 @@ class _HomeBottomNavigationState extends State<Homepage> {
                                   trailing: Container(
                                     height: 20.sp,
                                     width: 20.sp,
-                                    color: primaryColor,
                                     child: Icon(
                                       Icons.download,
                                       color: Colors.white,
@@ -597,6 +635,7 @@ class _HomeBottomNavigationState extends State<Homepage> {
                                     thickness: 1.sp,
                                   ),
                                 ),
+
                                 ListTile(
                                   title: Text(
                                     'Doubt Status',
@@ -901,9 +940,9 @@ class _HomeBottomNavigationState extends State<Homepage> {
                                       MaterialPageRoute(
                                         builder: (context) {
                                           return WebViewExample(
-                                            title: 'Privacy',
+                                            title: 'Privacy Policy',
                                             url:
-                                                'https://ksadmission.in/privacy-policy',
+                                            'https://ksadmission.in/privacy-policy',
                                           );
                                         },
                                       ),

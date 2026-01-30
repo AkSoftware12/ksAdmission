@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -10,7 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:realestate/KsTools/INDRODUCATION/Introduction.dart';
 import 'package:realestate/Utils/app_colors.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:video_player/video_player.dart';
+import '../../CommonCalling/progressbarPrimari.dart';
 import '../../HexColorCode/HexColor.dart';
 
 class CounsellingToolFeature {
@@ -48,7 +49,8 @@ class _FeatureToolsPageState extends State<FeatureToolsPage>
   var childrenButtonSize = const Size(56.0, 56.0);
   var selectedfABLocation = FloatingActionButtonLocation.endDocked;
 
-  VideoPlayerController? _controller1;
+  BetterPlayerController? _betterPlayerController;
+  bool _isPlaying = false;
 
   late AnimationController _controller;
   bool isLoading = false;
@@ -124,20 +126,52 @@ class _FeatureToolsPageState extends State<FeatureToolsPage>
 
   @override
   void dispose() {
-    if (_controller1 != null && _controller1!.value.isPlaying) {
-      _controller1!.pause();
-    }
-    _controller1?.dispose();
+    _betterPlayerController?.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   void initializeVideo() {
-    _controller1 = VideoPlayerController.network(
-        'https://apiweb.ksadmission.in/upload/video/1747803890WhatsApp_Video_2025-05-21_at_10.23.13_AM.mp4')
-      ..initialize().then((_) {
-        setState(() {});
-      });
+    final dataSource = BetterPlayerDataSource(
+      BetterPlayerDataSourceType.network,
+      "https://apiweb.ksadmission.in/upload/video/1747803890WhatsApp_Video_2025-05-21_at_10.23.13_AM.mp4",
+      cacheConfiguration: const BetterPlayerCacheConfiguration(
+        useCache: true,
+        preCacheSize: 10 * 1024 * 1024,
+        maxCacheSize: 100 * 1024 * 1024,
+        maxCacheFileSize: 50 * 1024 * 1024,
+      ),
+    );
+
+    _betterPlayerController = BetterPlayerController(
+      BetterPlayerConfiguration(
+        autoPlay: false,
+        looping: false,
+        fit: BoxFit.cover,
+        aspectRatio: 16 / 9,
+        controlsConfiguration: const BetterPlayerControlsConfiguration(
+          showControls: false, // tum apna custom play/pause icon use kar rahe ho
+        ),
+        placeholder: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.asset(
+            'assets/addmission_tools2.jpg',
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      betterPlayerDataSource: dataSource,
+    );
+
+    // listen playing state for UI
+    _betterPlayerController!.addEventsListener((event) {
+      if (!mounted) return;
+      if (event.betterPlayerEventType == BetterPlayerEventType.play) {
+        setState(() => _isPlaying = true);
+      } else if (event.betterPlayerEventType == BetterPlayerEventType.pause) {
+        setState(() => _isPlaying = false);
+      }
+    });
   }
 
   @override
@@ -193,9 +227,7 @@ class _FeatureToolsPageState extends State<FeatureToolsPage>
               Expanded(
                 child: isDataLoading
                     ? Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.purple,
-                  ),
+                  child:PrimaryCircularProgressWidget()
                 )
                     : Column(
                   children: [
@@ -221,48 +253,41 @@ class _FeatureToolsPageState extends State<FeatureToolsPage>
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(20.sp),
-                              child: AspectRatio(
-                                aspectRatio:
-                                _controller1!.value.aspectRatio,
-                                child: _controller1!.value.isInitialized
-                                    ? VideoPlayer(_controller1!)
-                                    : Container(color: Colors.black),
+                              child: BetterPlayer(
+                                controller: _betterPlayerController!,
                               ),
                             ),
-                            if (!_controller1!.value.isPlaying)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(20.sp),
-                                child: Image.asset(
-                                  'assets/addmission_tools.jpg',
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  fit: BoxFit.fill,
+
+                            // dark overlay (sirf jab play nahi ho)
+                            if (!_isPlaying)
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.40),
+                                  borderRadius: BorderRadius.circular(20.sp),
                                 ),
                               ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(20.sp),
-                              ),
-                            ),
+
+                            // play/pause icon overlay
                             IconButton(
                               icon: Icon(
-                                _controller1!.value.isPlaying
-                                    ? Icons.pause_circle
-                                    : Icons.play_circle,
+                                _isPlaying ? Icons.pause_circle : Icons.play_circle,
                                 color: Colors.white,
                                 size: 50.sp,
                               ),
-                              onPressed: () {
+                              onPressed: () async {
+                                if (_betterPlayerController == null) return;
+
+                                if (_betterPlayerController!.isPlaying() ?? false) {
+                                  await _betterPlayerController!.pause();
+                                } else {
+                                  await _betterPlayerController!.play();
+                                }
                                 setState(() {
-                                  if (_controller1!.value.isPlaying) {
-                                    _controller1!.pause();
-                                  } else {
-                                    _controller1!.play();
-                                  }
+                                  _isPlaying = _betterPlayerController!.isPlaying() ?? false;
                                 });
                               },
                             ),
+
                             Positioned(
                               bottom: 10.sp,
                               left: 10.sp,
@@ -428,7 +453,7 @@ class _FeatureToolsPageState extends State<FeatureToolsPage>
                   padding: EdgeInsets.only(bottom: 20.sp),
                   child: GestureDetector(
                     onTap: () {
-                      _controller1!.pause();
+                      _betterPlayerController?.pause();
                       Navigator.push(
                         context,
                         MaterialPageRoute(

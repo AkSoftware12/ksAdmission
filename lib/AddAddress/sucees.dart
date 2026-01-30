@@ -21,7 +21,7 @@ class SuccesOrderPlaced extends StatelessWidget {
               padding: EdgeInsets.all(0.0),
               child: Center(
                 child: Image.asset(
-                  'assets/order_placed.png',
+                  'assets/order_placed.jpeg',
 
                   alignment: Alignment.center,
                 ),

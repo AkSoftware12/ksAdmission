@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:realestate/CommonCalling/progressbarPrimari.dart';
 import 'package:realestate/Utils/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import '../../HomePage/home_page.dart';
 import '../../baseurl/baseurl.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -15,13 +18,9 @@ class TransactionsScreen extends StatefulWidget {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
-  // List<Transaction> transactions = [
-  //   Transaction(id: 'ORD123', title: 'Payment A', amount: 50.0, paymentType: 'Wallet', dateTime: DateTime.now(), isCompleted: true),
-  //   Transaction(id: 'ORD124', title: 'Payment B', amount: 75.0, paymentType: 'Online', dateTime: DateTime.now().subtract(Duration(days: 1)), isCompleted: true),
-  //   Transaction(id: 'ORD125', title: 'Payment C', amount: 100.0, paymentType: 'Wallet', dateTime: DateTime.now().subtract(Duration(days: 2)), isCompleted: true),
-  //   Transaction(id: 'ORD126', title: 'Payment D', amount: 150.0, paymentType: 'Online', dateTime: DateTime.now().subtract(Duration(days: 3)), isCompleted: false),
-  // ];
+
   List<dynamic> transactions = [];
+  bool isLoading = true;
 
 
   @override
@@ -50,165 +49,378 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       if (responseData.containsKey('transactions')) {
         setState(() {
           transactions = responseData['transactions'];
-          print('List :-  $transactions');
+          isLoading = false;
         });
       } else {
+        setState(() => isLoading = false);
+
         throw Exception('Invalid API response: Missing "category" key');
       }
     } else {
+      setState(() => isLoading = false);
+
       throw Exception('Failed to load data');
+
     }
   }
+
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: primaryColor,
-        title: Text('View Transactions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        elevation: 0,
         centerTitle: false,
-        elevation: 5,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        title:Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: (){
+                Navigator.of(context).pop();
+
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.arrow_back, size: 25, color: Colors.white),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Transactions',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Track your wallet & online payments",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            )
+
+
+          ],
+
+        ),
+
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF010071),
+                Color(0xFF0A1AFF),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_none_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationList()),
+                );
+              },
+            ),
+          ),
+        ],
 
       ),
-      body:transactions.isEmpty? Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-        ),
-      ): Padding(
-        padding: EdgeInsets.all(3.w),
-        child: ListView.builder(
-          itemCount: transactions.length,
-          itemBuilder: (context, index) {
-            final transaction = transactions[index];
-            return Stack(
+      body: isLoading
+          ? PrimaryCircularProgressWidget()
+          : transactions.isEmpty
+          ? _emptyState()
+          : ListView.builder(
+        padding: EdgeInsets.fromLTRB(5.w, 5.h, 5.w, 5.h),
+        itemCount: transactions.length,
+        reverse: true,
+        itemBuilder: (context, index) {
+          final t = transactions[index];
+          return _transactionCard(t);
+        },
+      ),
+    );
+  }
+
+
+
+  Widget _transactionCard(Map<String, dynamic> t) {
+    final String status = (t['status'] ?? '').toString().toLowerCase();
+    final bool success = status == 'success';
+
+    final String methodRaw = (t['payment_method'] ?? '').toString();
+    final bool isWallet = methodRaw.contains('wallet') || methodRaw.toLowerCase() == 'wallet';
+    final bool isUpi = methodRaw.toLowerCase().contains('upi');
+
+    final Color statusColor = success ? const Color(0xFF16A34A) : const Color(0xFFEF4444);
+    final Color methodColor = isWallet ? const Color(0xFF0EA5E9) : const Color(0xFF6366F1);
+
+    final IconData icon = isWallet ? Icons.account_balance_wallet_rounded : Icons.payments_rounded;
+
+    final String paymentId = (t['payment_id'] ?? '—').toString();
+    final String orderId = (t['order_id'] ?? '—').toString();
+    final String amount = (t['amount'] ?? '0').toString();
+    final String txnDate = (t['txn_date'] ?? '').toString();
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5.r),
+        color: Colors.white,
+        border: Border.all(color: Colors.blue.shade100,width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(5.w),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                  elevation: 3,
-                  color: Colors.green.shade100,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(3.w),
-                    child: Stack(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 20.r,
-                                      backgroundColor: transaction['payment_method'] == 'Payment made using wallet' ? Colors.green : Colors.green,
-                                      child: Icon(
-                                        transaction['payment_method']  == 'Payment made using wallet' ? Icons.account_balance_wallet : Icons.payment,
-                                        color: Colors.white,
-                                        size: 20.sp,
-                                      ),
-                                    ),
-                                    SizedBox(width: 12.w),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'PAY. ID: ${transaction['payment_id']}',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp),
-                                        ),
-                                        SizedBox(height: 4.h),
-                                        Text(
-                                          'Order ID:${transaction['order_id']}',
-                                          style: TextStyle(color: Colors.grey[700], fontSize: 12.sp),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Text(
-                                    //   'Amount',
-                                    //   style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
-                                    // ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        '₹${transaction['amount']}',
-                                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-
-                              ],
-                            ),
-                            Divider(color: Colors.grey.shade300),
-                            Padding(
-                              padding:  EdgeInsets.only(left: 0.sp,right: 0.sp),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5),
-                                      color: transaction['payment_method']=='UPI' ? Colors.blueGrey : Colors.blueGrey,
-                                    ),
-                                    child: Padding(
-                                      padding:  EdgeInsets.only(left: 8.sp,right: 8.sp,top: 5.sp,bottom: 5.sp),
-                                      child: Text(
-                                        transaction['payment_method']=='UPI'?'Online':'Wallet',
-                                        style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w500,color: Colors.grey.shade50),
-                                      ),
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      // Text(
-                                      //   'Date & Time',
-                                      //   style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
-                                      // ),
-                                      Text(
-                                        transaction['txn_date'],
-                                        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
-                                      ),
-                                    ],
-                                  ),
-
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                                    decoration: BoxDecoration(
-                                      color: transaction['status']=='success' ? Colors.green : Colors.red,
-                                      borderRadius: BorderRadius.circular(8.r),
-                                    ),
-                                    child: Text(
-                                      transaction['status']=='success' ? 'Success' : 'Failed',
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.sp),
-                                    ),
-                                  ),
-
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
+                Container(
+                  height: 44.w,
+                  width: 44.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14.r),
+                    gradient: LinearGradient(
+                      colors: [
+                        methodColor.withOpacity(0.18),
+                        methodColor.withOpacity(0.06),
                       ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                  ),
+                  child: Icon(icon, color: methodColor, size: 22.sp),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'PAY ID: $paymentId',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'Order ID: $orderId',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Text(
+                        '₹$amount',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            SizedBox(height: 5.h),
+            Container(
+              height: 1,
+              color: const Color(0xFFF1F5F9),
+            ),
+            SizedBox(height: 5.h),
+
+            Row(
+              children: [
+                _chip(
+                  text: isWallet ? 'Wallet' : (isUpi ? 'UPI' : 'Online'),
+                  color: methodColor,
+                  icon: isWallet ? Icons.account_balance_wallet_rounded : Icons.language_rounded,
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.schedule_rounded, size: 16.sp, color: const Color(0xFF64748B)),
+                      SizedBox(width: 6.w),
+                      Expanded(
+                        child: Text(
+                          txnDate.isEmpty ? '—' : txnDate,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(100),
+                    border: Border.all(color: statusColor.withOpacity(0.25)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        success ? Icons.verified_rounded : Icons.cancel_rounded,
+                        size: 14.sp,
+                        color: statusColor,
+                      ),
+                      SizedBox(width: 6.w),
+                      Text(
+                        success ? 'Success' : 'Failed',
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
               ],
-            );
-          },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _chip({required String text, required Color color, required IconData icon}) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: color.withOpacity(0.20)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14.sp, color: color),
+          SizedBox(width: 6.w),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyState() {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(22.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 72.w,
+              width: 72.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF0A1AFF).withOpacity(0.10),
+              ),
+              child: Icon(Icons.receipt_long_rounded, size: 34.sp, color: const Color(0xFF0A1AFF)),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'No transactions found',
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              'Your recent payments will appear here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+            ),
+          ],
         ),
       ),
     );

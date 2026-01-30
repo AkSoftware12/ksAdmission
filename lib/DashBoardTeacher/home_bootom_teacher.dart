@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:new_version_plus/new_version_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:realestate/DashBoardTeacher/teacher_panal_profile.dart';
 import 'package:secure_content/secure_content.dart';
@@ -12,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../Utils/string.dart';
 import '../../Utils/textSize.dart';
 import '../CommonCalling/Common.dart';
+import '../CommonCalling/progressbarPrimari.dart';
 import '../Download/download.dart';
 import '../FAQ/faq.dart';
 import '../Help/help.dart';
@@ -19,6 +22,7 @@ import '../LoginPage/login_page.dart';
 import '../OrderPage/orders.dart';
 import '../Profile/DoubtSessionTab/doubt_session_tab.dart';
 import '../ResetPassword/reset_password.dart';
+import '../SplashScreen/splash_screen.dart';
 import '../Utils/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -52,6 +56,9 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
   String pin = '';
   GlobalKey bottomNavigationKey = GlobalKey();
   bool _isLoading = false;
+  String currentVersion = '';
+  String release = "";
+  bool _upgradeDialogShown = false;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -63,13 +70,86 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
   void initState() {
     super.initState();
     fetchProfileData();
+    checkForVersion(context);
+
+    final newVersion = NewVersionPlus(
+      iOSId: 'com.ksadmission',
+      androidId: 'com.ksadmission',
+      androidPlayStoreCountry: "es_ES",
+      androidHtmlReleaseNotes: true,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      advancedStatusCheck(newVersion); // ✅ now context is ready
+    });
+  }
+
+  basicStatusCheck(NewVersionPlus newVersion) async {
+    final version = await newVersion.getVersionStatus();
+    if (version != null) {
+      release = version.releaseNotes ?? "";
+      setState(() {});
+    }
+    newVersion.showAlertIfNecessary(
+      context: context,
+      launchModeVersion: LaunchModeVersion.external,
+    );
+  }
+
+  Future<void> advancedStatusCheck(NewVersionPlus newVersion) async {
+    try {
+      final status = await newVersion.getVersionStatus();
+      if (status == null) return;
+
+      debugPrint("releaseNotes: ${status.releaseNotes}");
+      debugPrint("appStoreLink: ${status.appStoreLink}");
+      debugPrint("localVersion: ${status.localVersion}");
+      debugPrint("storeVersion: ${status.storeVersion}");
+      debugPrint("canUpdate: ${status.canUpdate}");
+
+      if (!status.canUpdate) return;
+      if (_upgradeDialogShown) return;
+      if (!mounted) return;
+
+      _upgradeDialogShown = true;
+
+      showDialog(
+        context: context, // ✅ yahi best hai
+        barrierDismissible: false,
+        builder: (dialogCtx) {
+          return PopScope( // ✅ WillPopScope new replacement (Flutter 3.13+)
+            canPop: false,
+            onPopInvoked: (didPop) {
+              SystemNavigator.pop();
+            },
+            child: CustomUpgradeDialog(
+              currentVersion: status.localVersion,
+              newVersion: status.storeVersion,
+              releaseNotes: [
+                (status.releaseNotes ?? "").trim().isEmpty
+                    ? "New update available."
+                    : status.releaseNotes!.trim(),
+              ],
+            ),
+          );
+        },
+      );
+    } catch (e, st) {
+      debugPrint("advancedStatusCheck error: $e");
+      debugPrint("$st");
+    }
+  }
+  Future<void> checkForVersion(BuildContext context) async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    currentVersion = packageInfo.version;
   }
 
   Future<void> shareContent() async {
     // Replace with your image file path
     final ByteData bytes = await rootBundle.load(logo);
     final Directory directory = await getTemporaryDirectory();
-    final File file = File('${directory.path}/logo.png');
+    final File file = File('${directory.path}/logo2.png');
 
     // Write the bytes to the file
     await file.writeAsBytes(bytes.buffer.asUint8List());
@@ -120,9 +200,8 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: primaryColor),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+              PrimaryCircularProgressWidget(),
+
             ],
           ),
         );
@@ -232,7 +311,7 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
             ),
 
             centerTitle: true,
-            backgroundColor: primaryColor,
+            backgroundColor: Color(0xFF010071),
           ),
 
           body: SafeArea(
@@ -256,8 +335,8 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
             child: BottomNavigationBar(
               items: const <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.account_circle),
-                  label: 'Student List',
+                  icon: Icon(Icons.group),
+                  label: 'Doubt List',
                 ),
 
                 BottomNavigationBarItem(
@@ -277,7 +356,7 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
               currentIndex: _selectedIndex,
               selectedItemColor: Colors.white,
               unselectedItemColor: Colors.grey,
-              backgroundColor: primaryColor,
+              backgroundColor: Color(0xFF010071),
               type: BottomNavigationBarType.fixed,
               // Ensures all items are shown
               selectedLabelStyle: GoogleFonts.radioCanada(
@@ -304,7 +383,7 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             width: MediaQuery.sizeOf(context).width * .65,
             // backgroundColor: Theme.of(context).colorScheme.background,
-            backgroundColor: primaryColor,
+            backgroundColor:  Color(0xFF010071),
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -378,221 +457,221 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              ListTile(
-                                title: Text(
-                                  'Download',
-                                  style: GoogleFonts.cabin(
-                                    textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-
-                                trailing: Container(
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  color: primaryColor,
-                                  child: Icon(
-                                    Icons.download,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return DownloadPdf();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  left: 8.sp,
-                                  right: 8.sp,
-                                ),
-                                child: Divider(
-                                  height: 1.sp,
-                                  color: Colors.grey.shade300,
-                                  thickness: 1.sp,
-                                ),
-                              ),
-
-                              ListTile(
-                                title: Text(
-                                  'Doubt Status',
-                                  style: GoogleFonts.cabin(
-                                    textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-
-                                trailing: Container(
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  child: Image.asset(
-                                    doubt,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return DoubtStatusPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  left: 8.sp,
-                                  right: 8.sp,
-                                ),
-                                child: Divider(
-                                  height: 1.sp,
-                                  color: Colors.grey.shade300,
-                                  thickness: 1.sp,
-                                ),
-                              ),
-
-                              ListTile(
-                                title: Text(
-                                  'Doubt Session',
-                                  style: GoogleFonts.cabin(
-                                    textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-
-                                trailing: Container(
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  child: Image.asset(
-                                    doubt,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return DoubtSessionTabClass();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  left: 8.sp,
-                                  right: 8.sp,
-                                ),
-                                child: Divider(
-                                  height: 1.sp,
-                                  color: Colors.grey.shade300,
-                                  thickness: 1.sp,
-                                ),
-                              ),
-
-                              ListTile(
-                                title: Text(
-                                  'Orders',
-                                  style: GoogleFonts.cabin(
-                                    textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-
-                                trailing: Container(
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  child: Image.asset(
-                                    checklist,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return OrdersPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  left: 8.sp,
-                                  right: 8.sp,
-                                ),
-                                child: Divider(
-                                  height: 1.sp,
-                                  color: Colors.grey.shade300,
-                                  thickness: 1.sp,
-                                ),
-                              ),
-
-                              ListTile(
-                                title: Text(
-                                  'Update Password',
-                                  style: GoogleFonts.cabin(
-                                    textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-
-                                trailing: Container(
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  child: Image.asset(
-                                    changePass,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return ResetPasswordPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  left: 8.sp,
-                                  right: 8.sp,
-                                ),
-                                child: Divider(
-                                  height: 1.sp,
-                                  color: Colors.grey.shade300,
-                                  thickness: 1.sp,
-                                ),
-                              ),
+                              // ListTile(
+                              //   title: Text(
+                              //     'Download',
+                              //     style: GoogleFonts.cabin(
+                              //       textStyle: TextStyle(
+                              //         color: Colors.white,
+                              //         fontSize: 15.sp,
+                              //         fontWeight: FontWeight.normal,
+                              //       ),
+                              //     ),
+                              //   ),
+                              //
+                              //   trailing: Container(
+                              //     height: 20.sp,
+                              //     width: 20.sp,
+                              //     color: primaryColor,
+                              //     child: Icon(
+                              //       Icons.download,
+                              //       color: Colors.white,
+                              //     ),
+                              //   ),
+                              //   onTap: () {
+                              //     Navigator.push(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) {
+                              //           return DownloadPdf();
+                              //         },
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
+                              // Padding(
+                              //   padding: EdgeInsets.only(
+                              //     left: 8.sp,
+                              //     right: 8.sp,
+                              //   ),
+                              //   child: Divider(
+                              //     height: 1.sp,
+                              //     color: Colors.grey.shade300,
+                              //     thickness: 1.sp,
+                              //   ),
+                              // ),
+                              //
+                              // ListTile(
+                              //   title: Text(
+                              //     'Doubt Status',
+                              //     style: GoogleFonts.cabin(
+                              //       textStyle: TextStyle(
+                              //         color: Colors.white,
+                              //         fontSize: 15.sp,
+                              //         fontWeight: FontWeight.normal,
+                              //       ),
+                              //     ),
+                              //   ),
+                              //
+                              //   trailing: Container(
+                              //     height: 20.sp,
+                              //     width: 20.sp,
+                              //     child: Image.asset(
+                              //       doubt,
+                              //       color: Colors.white,
+                              //     ),
+                              //   ),
+                              //   onTap: () {
+                              //     Navigator.push(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) {
+                              //           return DoubtStatusPage();
+                              //         },
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
+                              // Padding(
+                              //   padding: EdgeInsets.only(
+                              //     left: 8.sp,
+                              //     right: 8.sp,
+                              //   ),
+                              //   child: Divider(
+                              //     height: 1.sp,
+                              //     color: Colors.grey.shade300,
+                              //     thickness: 1.sp,
+                              //   ),
+                              // ),
+                              //
+                              // ListTile(
+                              //   title: Text(
+                              //     'Doubt Session',
+                              //     style: GoogleFonts.cabin(
+                              //       textStyle: TextStyle(
+                              //         color: Colors.white,
+                              //         fontSize: 15.sp,
+                              //         fontWeight: FontWeight.normal,
+                              //       ),
+                              //     ),
+                              //   ),
+                              //
+                              //   trailing: Container(
+                              //     height: 20.sp,
+                              //     width: 20.sp,
+                              //     child: Image.asset(
+                              //       doubt,
+                              //       color: Colors.white,
+                              //     ),
+                              //   ),
+                              //   onTap: () {
+                              //     Navigator.push(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) {
+                              //           return DoubtSessionTabClass();
+                              //         },
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
+                              // Padding(
+                              //   padding: EdgeInsets.only(
+                              //     left: 8.sp,
+                              //     right: 8.sp,
+                              //   ),
+                              //   child: Divider(
+                              //     height: 1.sp,
+                              //     color: Colors.grey.shade300,
+                              //     thickness: 1.sp,
+                              //   ),
+                              // ),
+                              //
+                              // ListTile(
+                              //   title: Text(
+                              //     'Orders',
+                              //     style: GoogleFonts.cabin(
+                              //       textStyle: TextStyle(
+                              //         color: Colors.white,
+                              //         fontSize: 15.sp,
+                              //         fontWeight: FontWeight.normal,
+                              //       ),
+                              //     ),
+                              //   ),
+                              //
+                              //   trailing: Container(
+                              //     height: 20.sp,
+                              //     width: 20.sp,
+                              //     child: Image.asset(
+                              //       checklist,
+                              //       color: Colors.white,
+                              //     ),
+                              //   ),
+                              //   onTap: () {
+                              //     Navigator.push(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) {
+                              //           return OrdersPage();
+                              //         },
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
+                              // Padding(
+                              //   padding: EdgeInsets.only(
+                              //     left: 8.sp,
+                              //     right: 8.sp,
+                              //   ),
+                              //   child: Divider(
+                              //     height: 1.sp,
+                              //     color: Colors.grey.shade300,
+                              //     thickness: 1.sp,
+                              //   ),
+                              // ),
+                              //
+                              // ListTile(
+                              //   title: Text(
+                              //     'Update Password',
+                              //     style: GoogleFonts.cabin(
+                              //       textStyle: TextStyle(
+                              //         color: Colors.white,
+                              //         fontSize: 15.sp,
+                              //         fontWeight: FontWeight.normal,
+                              //       ),
+                              //     ),
+                              //   ),
+                              //
+                              //   trailing: Container(
+                              //     height: 20.sp,
+                              //     width: 20.sp,
+                              //     child: Image.asset(
+                              //       changePass,
+                              //       color: Colors.white,
+                              //     ),
+                              //   ),
+                              //   onTap: () {
+                              //     Navigator.push(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) {
+                              //           return ResetPasswordPage();
+                              //         },
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
+                              // Padding(
+                              //   padding: EdgeInsets.only(
+                              //     left: 8.sp,
+                              //     right: 8.sp,
+                              //   ),
+                              //   child: Divider(
+                              //     height: 1.sp,
+                              //     color: Colors.grey.shade300,
+                              //     thickness: 1.sp,
+                              //   ),
+                              // ),
 
                               ListTile(
                                 title: Text(
@@ -629,45 +708,45 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
                                 ),
                               ),
 
-                              ListTile(
-                                title: Text(
-                                  'Help',
-                                  style: GoogleFonts.cabin(
-                                    textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-
-                                trailing: Container(
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  child: Image.asset(help, color: Colors.white),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return HelpScreen(appBar: '');
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  left: 8.sp,
-                                  right: 8.sp,
-                                ),
-                                child: Divider(
-                                  height: 1.sp,
-                                  color: Colors.grey.shade300,
-                                  thickness: 1.sp,
-                                ),
-                              ),
+                              // ListTile(
+                              //   title: Text(
+                              //     'Help',
+                              //     style: GoogleFonts.cabin(
+                              //       textStyle: TextStyle(
+                              //         color: Colors.white,
+                              //         fontSize: 15.sp,
+                              //         fontWeight: FontWeight.normal,
+                              //       ),
+                              //     ),
+                              //   ),
+                              //
+                              //   trailing: Container(
+                              //     height: 20.sp,
+                              //     width: 20.sp,
+                              //     child: Image.asset(help, color: Colors.white),
+                              //   ),
+                              //   onTap: () {
+                              //     Navigator.push(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) {
+                              //           return HelpScreen(appBar: '');
+                              //         },
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
+                              // Padding(
+                              //   padding: EdgeInsets.only(
+                              //     left: 8.sp,
+                              //     right: 8.sp,
+                              //   ),
+                              //   child: Divider(
+                              //     height: 1.sp,
+                              //     color: Colors.grey.shade300,
+                              //     thickness: 1.sp,
+                              //   ),
+                              // ),
 
                               ListTile(
                                 title: Text(
@@ -691,7 +770,7 @@ class _HomeBottomNavigationState extends State<HomeBottomTeacher> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) {
-                                        return FaqScreen(appBar: '');
+                                        return FaqScreen(appBar: 'appp');
                                       },
                                     ),
                                   );

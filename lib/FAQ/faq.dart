@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../HomePage/home_page.dart';
 import '../Utils/app_colors.dart';
 import '../Utils/image.dart';
 import '../Utils/textSize.dart';
@@ -93,20 +94,91 @@ class _FaqScreenState extends State<FaqScreen> {
     return Scaffold(
       appBar: widget.appBar.isEmpty
           ? null
-          :  AppBar(
-        backgroundColor: primaryColor,
-        iconTheme: IconThemeData(color: Colors.white),
-        title:  Text("FAQ",
-          style: GoogleFonts.radioCanada(
-            textStyle: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.normal,
-              color: Colors.white,
+          :   AppBar(
+        elevation: 0,
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF010071),
+                Color(0xFF0A1AFF),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
+        ),
+        title: Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: (){
+                Navigator.of(context).pop();
+
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.arrow_back, size: 25, color: Colors.white),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'FAQ',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Find answers to common questions instantly",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            )
+
+
+          ],
 
         ),
+        actions: [
+        ],
+
       ),
+
 
 
       body: Stack(
@@ -124,7 +196,7 @@ class _FaqScreenState extends State<FaqScreen> {
             itemCount: faqlist.length,
             itemBuilder: (context, index) {
               return Card(
-                color: Colors.blueGrey.shade50,
+                color: Colors.blue.shade100,
                 child: ExpansionTile(
                   title: Text(
                     faqlist[index]['question']!,
@@ -132,7 +204,7 @@ class _FaqScreenState extends State<FaqScreen> {
                   ),
                   children: [
                     Container(
-                      color: Colors.green.shade50,
+                      color: Colors.blue.shade50,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(faqlist[index]['answer']!,

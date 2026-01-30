@@ -10,6 +10,7 @@ import 'package:realestate/HomePage/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../Utils/app_colors.dart';
 import '../Utils/color_constants.dart';
@@ -131,11 +132,8 @@ class _DoubtSessionState extends State<DoubtSession> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Colors.orangeAccent,
-              ),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
+              PrimaryCircularProgressWidget()
+
             ],
           ),
         );
@@ -238,282 +236,399 @@ class _DoubtSessionState extends State<DoubtSession> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: Stack(
+      backgroundColor: const Color(0xFFF6F7FB),
+
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(5.w, 5.h, 5.w, 110.h),
+        child: Column(
           children: [
-            Center(
-              child: SizedBox(
-                // height: 150.sp,
-                width: double.infinity,
-                child: Opacity(
-                  opacity: 0.1, // Adjust the opacity value (0.0 to 1.0)
-                  child: Image.asset(logo),
+            // top info card
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(5.sp),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.sp),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white,
+                    Colors.white.withOpacity(0.92),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Category dropdown
-                  Container(
-                    decoration: BoxDecoration(
-                      // color: HexColor('#800000'),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(5.sp),  // Top left corner radius
-                        bottomLeft: Radius.circular(5.sp),  // Bottom left corner radius
-                        bottomRight: Radius.circular(5.sp),  // Bottom left corner radius
-                        topRight: Radius.circular(5.sp),  // Bottom left corner radius
-                      ),
-                      border: Border.all(
-                        color: greenColorQ, // Border color
-                        width: 1.sp, // Border width
-                      ),
-                    ),
-
-                    height: 60.sp,
-                    child: Padding(
-                      padding: EdgeInsets.only(left: 5.sp, right: 5.sp),
-                      child: DropdownButtonFormField<int>(
-                        decoration: const InputDecoration(
-                          labelText: 'Select Course',
-                          border: InputBorder.none,  // Remove the underline
-                        ),
-                        value: selectedCategory,
-                        items: category.map((category) {
-                          return DropdownMenuItem<int>(
-                            value: category['id'] as int,  // Assuming each category has an 'id' field as int
-                            child:  category['planstatus']=='unlocked' ?Text(category['name'].toString()):SizedBox()
-
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedCategory = value!;
-                            selectedSubject = null; // Clear the selected subject
-                            hitSubjectApi(value);
-                          });
-                        },
-                      ),
-                    )
-
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0xFF0A1AFF).withOpacity(0.06),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Subject dropdown
-                  Container(
-                    decoration: BoxDecoration(
-                      // color: HexColor('#800000'),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(5.sp),  // Top left corner radius
-                        bottomLeft: Radius.circular(5.sp),  // Bottom left corner radius
-                        bottomRight: Radius.circular(5.sp),  // Bottom left corner radius
-                        topRight: Radius.circular(5.sp),  // Bottom left corner radius
-                      ),
-                      border: Border.all(
-                        color: greenColorQ, // Border color
-                        width: 1.sp, // Border width
-                      ),
-                    ),
-
-                    child: Padding(
-                      padding:  EdgeInsets.only(left: 5.sp,right: 5.sp),
-                      child: DropdownButtonFormField<int>(
-                        decoration: const InputDecoration(
-                          labelText: 'Select Subject',
-                          border: InputBorder.none, // Remove the underline
-                        ),
-                        value:  selectedSubject,
-                        items: subjects.map((subject) {
-                          return DropdownMenuItem<int>(
-                            value: subject['id'] as int, // Ensure 'name' is accessed correctly
-                            child: Text(subject['name'].toString()),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedSubject = value;
-                          });
-                        },
-                      ),
-
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Message input field
-                  TextFormField(
-                    controller: messageController,
-                    decoration: const InputDecoration(
-                      labelText: 'Enter your message',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Buttons for gallery and camera
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: [
-                  //     ElevatedButton.icon(
-                  //       onPressed: _pickImageFromGallery,
-                  //       icon: const Icon(Icons.photo),
-                  //       label: const Text('Gallery'),
-                  //     ),
-                  //     ElevatedButton.icon(
-                  //       onPressed: _captureImageFromCamera,
-                  //       icon: const Icon(Icons.camera),
-                  //       label: const Text('Camera'),
-                  //     ),
-                  //   ],
-                  // ),
-
-                  const SizedBox(height: 16),
-
-                  // Display selected/captured image
-                  if (_image != null)
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        // color: HexColor('#800000'),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(5.sp),  // Top left corner radius
-                          bottomLeft: Radius.circular(5.sp),  // Bottom left corner radius
-                          bottomRight: Radius.circular(5.sp),  // Bottom left corner radius
-                          topRight: Radius.circular(5.sp),  // Bottom left corner radius
-                        ),
-                        border: Border.all(
-                          color: greenColorQ, // Border color
-                          width: 1.sp, // Border width
-                        ),
-                      ),
-
-                      height: 180.sp,
-                      child: Image.file(
-                        File(_image!.path),
-                        height: 180.sp,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-
-                  const SizedBox(height: 16),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _pickImageFromGallery,
-                        icon: const Icon(Icons.photo,color: Colors.white,),
-                        label: const Text('Upload',
-                          style: TextStyle(
-                            color: Colors.white
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: greenColorQ, // Change this to your preferred color
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: _captureImageFromCamera,
-                        icon: const Icon(Icons.camera,color: Colors.white,),
-                        label: const Text('Camera',
-                          style: TextStyle(
-                              color: Colors.white
-                          ),
-
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: greenColorQ, // Change this to your preferred color
-                        ),
-                      ),
-                    ],
-                  ),
-
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-
-      bottomSheet: Container(
-        height: 80.sp,
-        color: Colors.white,
-        child:  Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Spacer(),
-
-                Padding(
-                  padding: const EdgeInsets.all(0.0),
-                  child: GestureDetector(
-                    onTap: (){
-
-                      if(messageController.text.isEmpty){
-                        Fluttertoast.showToast(
-                          msg: "✍️ Please enter your message",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.CENTER,
-                          backgroundColor: Colors.red, // dark slate
-                          textColor: Colors.white,       // soft red
-                          fontSize: 16,
-                        );
-
-
-                      }else{
-                        _updateProfile(_image);
-                        messageController.clear();
-                      }
-
-
-                    },
-                    child: Row(
+              child: Row(
+                children: [
+                  Container(
+                    height: 44.sp,
+                    width: 44.sp,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14.sp),
+                      color: Colors.grey.shade100,
+                    ),
+                    child: Icon(Icons.help_outline, color: Colors.blue, size: 22.sp),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          height: 40.sp,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.sp), // Adjust the radius to make it more or less rounded
-                            color: ColorConstants.primaryColor, // Set your desired color
+                        Text(
+                          "Quick Tip",
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue,
                           ),
-
-                          child: Center(
-                            child: Padding(
-                              padding:  EdgeInsets.only(left: 35.sp,right: 35.sp),
-                              child: Text('Submit',
-                                style: GoogleFonts.poppins(
-                                  textStyle: TextStyle(
-                                      fontSize: TextSizes.textmedium,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.white),
-                                ),
-                              ),
-                            ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          "Choose course, subject, write message & attach image (optional).",
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.5.sp,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF6B7280),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                Spacer(),
+                ],
+              ),
+            ),
 
+            SizedBox(height: 10.h),
+
+            // Course dropdown card
+            _premiumCard(
+              child: _premiumDropdown<int>(
+                label: "Select Course",
+                icon: Icons.school_outlined,
+                value: selectedCategory,
+                items: category
+                    .where((c) => c['planstatus'] == 'unlocked')
+                    .map((c) => DropdownMenuItem<int>(
+                  value: c['id'] as int,
+                  child: Text(
+                    c['name'].toString(),
+                    style: GoogleFonts.poppins(fontSize: 12.sp),
+                  ),
+                ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    selectedCategory = value;
+                    selectedSubject = null;
+                    subjects = [];
+                  });
+                  hitSubjectApi(value);
+                },
+              ),
+            ),
+
+            SizedBox(height: 12.h),
+
+            // Subject dropdown card
+            _premiumCard(
+              child: _premiumDropdown<int>(
+                label: "Select Subject",
+                icon: Icons.menu_book_outlined,
+                value: selectedSubject,
+                items: subjects
+                    .map((s) => DropdownMenuItem<int>(
+                  value: s['id'] as int,
+                  child: Text(
+                    s['name'].toString(),
+                    style: GoogleFonts.poppins(fontSize: 12.sp),
+                  ),
+                ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() => selectedSubject = value);
+                },
+              ),
+            ),
+
+            SizedBox(height: 12.h),
+
+            // message box
+            _premiumCard(
+              child: TextFormField(
+                controller: messageController,
+                maxLines: 5,
+                style: GoogleFonts.poppins(fontSize: 12.sp, color: const Color(0xFF111827)),
+                decoration: InputDecoration(
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.only(top: 12.h),
+                    child: Icon(Icons.edit_note_rounded, color:  Colors.blue),
+                  ),
+                  labelText: "Enter your message",
+                  labelStyle: GoogleFonts.poppins(
+                    fontSize: 12.sp,
+                    color: const Color(0xFF6B7280),
+                  ),
+                  hintText: "Explain your doubt clearly…",
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 11.sp,
+                    color: const Color(0xFF9CA3AF),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF9FAFB),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14.sp),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14.sp),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14.sp),
+                    borderSide: BorderSide(color:  Colors.blue, width: 1.2),
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 12.h),
+
+            // image preview
+            if (_image != null) ...[
+              _premiumCard(
+                padding: EdgeInsets.zero,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16.sp),
+                      child: Image.file(
+                        File(_image!.path),
+                        height: 180.sp,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: InkWell(
+                        onTap: () => setState(() => _image = null),
+                        child: Container(
+                          padding: EdgeInsets.all(8.sp),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.45),
+                            borderRadius: BorderRadius.circular(12.sp),
+                          ),
+                          child: Icon(Icons.close, color: Colors.white, size: 18.sp),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 12.h),
+            ],
+
+            // Upload buttons
+            Row(
+              children: [
+                Expanded(
+                  child: _actionButton(
+                    icon: Icons.photo_library_outlined,
+                    text: "Upload",
+                    onTap: _pickImageFromGallery,
+                  ),
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: _actionButton(
+                    icon: Icons.camera_alt_outlined,
+                    text: "Camera",
+                    onTap: _captureImageFromCamera,
+                  ),
+                ),
               ],
             ),
           ],
         ),
-
       ),
 
+      // bottom submit bar
+      bottomSheet: Container(
+        padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 14.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 18,
+              offset: const Offset(0, -6),
+            ),
+          ],
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(18.sp),
+            topRight: Radius.circular(18.sp),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14.sp),
+            onTap: () {
+              if (messageController.text.trim().isEmpty) {
+                Fluttertoast.showToast(
+                  msg: "✍️ Please enter your message",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.CENTER,
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  fontSize: 16,
+                );
+                return;
+              }
+              _updateProfile(_image);
+              messageController.clear();
+            },
+            child: Container(
+              height: 52.sp,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14.sp),
+                gradient: LinearGradient(
+                  colors: [
+
+                    Color(0xFF010071),
+                    Color(0xFF0A1AFF),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.send_rounded, color: Colors.white, size: 18.sp),
+                  SizedBox(width: 10.w),
+                  Text(
+                    "Submit Doubt",
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
+
+// ---------- UI helpers (same file me niche add kar do) ----------
+
+  Widget _premiumCard({required Widget child, EdgeInsets? padding}) {
+    return Container(
+      width: double.infinity,
+      padding: padding ?? EdgeInsets.all(10.sp),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.sp),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF0A1AFF).withOpacity(0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _premiumDropdown<T>({
+    required String label,
+    required IconData icon,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return DropdownButtonFormField<T>(
+      value: value,
+      items: items,
+      onChanged: onChanged,
+      isExpanded: true,
+      icon: Icon(Icons.keyboard_arrow_down_rounded, color:  Colors.blue),
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: Colors.blue),
+        labelText: label,
+        labelStyle: GoogleFonts.poppins(fontSize: 12.sp, color: const Color(0xFF6B7280)),
+        filled: true,
+        fillColor: const Color(0xFFF9FAFB),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.sp),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.sp),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.sp),
+          borderSide: BorderSide(color: Colors.blue, width: 1.2),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14.sp),
+      onTap: onTap,
+      child: Container(
+        height: 52.sp,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14.sp),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color:  Colors.blue, size: 18.sp),
+            SizedBox(width: 10.w),
+            Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF111827),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

@@ -28,7 +28,7 @@ class DataNotFoundWidget extends StatelessWidget {
                             textStyle: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color:  Color(0xFF010071),
                             ),
                           ),
                         ),

@@ -5,8 +5,7 @@ import 'package:realestate/FAQ/faq.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:video_player/video_player.dart';
-
+import '../CommonCalling/progressbarPrimari.dart';
 import '../Help/help.dart';
 import '../Utils/app_colors.dart';
 import '../Utils/image.dart';
@@ -82,29 +81,29 @@ class FullScreenVideoPlayer extends StatefulWidget {
 }
 
 class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
-  late VideoPlayerController _controller;
+  // late VideoPlayerController _controller;
   bool _isPlaying = false;
   Duration _currentPosition = Duration.zero;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.asset('assets/videoplayback.mp4')
-      ..initialize().then((_) {
-        setState(() {});
-      })
-      ..setLooping(true)
-      ..play().then((_) {
-        setState(() {
-          _isPlaying = true;
-        });
-      });
-
-    _controller.addListener(() {
-      setState(() {
-        _currentPosition = _controller.value.position;
-      });
-    });
+    // _controller = VideoPlayerController.asset('assets/videoplayback.mp4')
+    //   ..initialize().then((_) {
+    //     setState(() {});
+    //   })
+    //   ..setLooping(true)
+    //   ..play().then((_) {
+    //     setState(() {
+    //       _isPlaying = true;
+    //     });
+    //   });
+    //
+    // _controller.addListener(() {
+    //   setState(() {
+    //     _currentPosition = _controller.value.position;
+    //   });
+    // });
   }
 
   @override
@@ -112,64 +111,64 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
     return Scaffold(
       body: Stack(
         children: [
-          _controller.value.isInitialized
-              ? SizedBox(
-            width: double.infinity,
-            height: double.infinity,
-            child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
-            ),
-          )
-              : Center(child: CircularProgressIndicator()),
+          // _controller.value.isInitialized
+          //     ? SizedBox(
+          //   width: double.infinity,
+          //   height: double.infinity,
+          //   child: AspectRatio(
+          //     aspectRatio: _controller.value.aspectRatio,
+          //     child: VideoPlayer(_controller),
+          //   ),
+          // )
+          //     : Center(child: PrimaryCircularProgressWidget()),
         ],
       ),
-      bottomNavigationBar: Container(
-        color: Colors.grey[850], // Set your desired color here
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            VideoProgressIndicator(
-              _controller,
-              allowScrubbing: true,
-              colors: VideoProgressColors(playedColor: Colors.red),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _formatDuration(_currentPosition),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  Text(
-                    _formatDuration(_controller.value.duration),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.redAccent,
-        onPressed: () {
-          setState(() {
-            if (_controller.value.isPlaying) {
-              _controller.pause();
-            } else {
-              _controller.play();
-            }
-            _isPlaying = _controller.value.isPlaying;
-          });
-        },
-        child: Icon(
-          _isPlaying ? Icons.pause : Icons.play_arrow,
-          color: Colors.white,
-        ),
-      ),
+      // bottomNavigationBar: Container(
+      //   color: Colors.grey[850], // Set your desired color here
+      //   child: Column(
+      //     mainAxisSize: MainAxisSize.min,
+      //     children: [
+      //       // VideoProgressIndicator(
+      //       //   _controller,
+      //       //   allowScrubbing: true,
+      //       //   colors: VideoProgressColors(playedColor: Colors.red),
+      //       // ),
+      //       Padding(
+      //         padding: const EdgeInsets.all(8.0),
+      //         child: Row(
+      //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //           children: [
+      //             Text(
+      //               _formatDuration(_currentPosition),
+      //               style: TextStyle(color: Colors.white),
+      //             ),
+      //             Text(
+      //               _formatDuration(_controller.value.duration),
+      //               style: TextStyle(color: Colors.white),
+      //             ),
+      //           ],
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      // ),
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: Colors.redAccent,
+      //   onPressed: () {
+      //     setState(() {
+      //       if (_controller.value.isPlaying) {
+      //         _controller.pause();
+      //       } else {
+      //         _controller.play();
+      //       }
+      //       _isPlaying = _controller.value.isPlaying;
+      //     });
+      //   },
+      //   child: Icon(
+      //     _isPlaying ? Icons.pause : Icons.play_arrow,
+      //     color: Colors.white,
+      //   ),
+      // ),
     );
   }
 
@@ -182,6 +181,5 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
   }
 }

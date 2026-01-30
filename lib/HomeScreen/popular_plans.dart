@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Utils/app_colors.dart';
+import '../CommonCalling/progressbarPrimari.dart';
+import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
 import '../baseurl/baseurl.dart';
 import 'package:http/http.dart' as http;
@@ -147,8 +150,7 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
                   ),
                 ),
                 child: _isLoading
-                    ? CircularProgressIndicator(
-                        color: Colors.white, // Match button text color
+                    ? PrimaryCircularProgressWidget(
                       )
                     : Text(
                         "Proceed to Pay",
@@ -383,7 +385,7 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: primaryColor),
+              PrimaryCircularProgressWidget(),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),
             ],
@@ -447,7 +449,7 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: primaryColor),
+              PrimaryCircularProgressWidget(),
               // SizedBox(width: 16.0),
               // Text("Logging in..."),
             ],
@@ -533,12 +535,90 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text(
-          '${widget.data['name']} ${widget.data['id']}' ?? '',
-          style: TextStyle(color: Colors.white),
+        elevation: 0,
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF010071),
+                Color(0xFF0A1AFF),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
         ),
+        title: Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.arrow_back, size: 25, color: Colors.white),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.data['name'].toString(), // ✅ dynamic
+                  style: GoogleFonts.poppins(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                 'Access complete course bundles', // ✅ dynamic
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_none_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationList()),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -553,8 +633,7 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
                   fit: BoxFit.fill,
                   // Adjust this according to your requirement
                   placeholder: (context, url) => Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.orangeAccent,
+                    child: PrimaryCircularProgressWidget(
                     ),
                   ),
                   errorWidget: (context, url, error) => Image.asset(
@@ -597,16 +676,52 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        // onPressed:(){
-        //   _showPaymentSuccessDialog2(context);
-        // },
-        onPressed: _showPaymentBottomSheet,
-        backgroundColor: primaryColor,
-        icon: Icon(Icons.payment, color: Colors.white),
-        label: Text(
-          "Pay ₹ ${widget.data['price'] ?? '0'}",
-          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30.r),
+          boxShadow: [
+            BoxShadow(
+              color:  HexColor('#010071').withOpacity(0.45),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _showPaymentBottomSheet,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          splashColor: Colors.white24,
+          label: Container(
+            padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30.r),
+              gradient: LinearGradient(
+                colors: [
+                  HexColor('#010071'),
+                  HexColor('#010071').withOpacity(0.85),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.lock_outline, color: Colors.white, size: 20),
+                SizedBox(width: 10.w),
+                Text(
+                  "Pay ₹ ${widget.data['price'] ?? '0'}",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 15.5.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

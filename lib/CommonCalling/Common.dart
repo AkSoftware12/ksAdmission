@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:realestate/CommonCalling/progressbarPrimari.dart';
 
 import '../Auth/auth_service.dart';
 
@@ -18,8 +19,7 @@ class CommonMethod {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(ColorSelect.buttonColor),
+          child: PrimaryCircularProgressWidget(
           ), // Progress bar widget
         );
       },
@@ -32,8 +32,7 @@ class CommonMethod {
       context: context,
       builder: (BuildContext context) {
         return const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(ColorSelect.buttonColor),
+          child: PrimaryCircularProgressWidget(
           ),
         );
       },
