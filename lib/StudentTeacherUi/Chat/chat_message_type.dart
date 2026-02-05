@@ -1,4 +1,0 @@
-enum ChatMessageType {
-  sent,
-  received,
-}

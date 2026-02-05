@@ -51,6 +51,8 @@ class _TeacherProfileScreenState extends State<ProfileTeacherScreen> {
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonData = json.decode(response.body);
       setState(() {
+
+        print(jsonData);
         nickname = jsonData['data']['name'] ?? '';
         userEmail = jsonData['data']['email'] ?? '';
         contact = jsonData['data']['contact'] ?? '';

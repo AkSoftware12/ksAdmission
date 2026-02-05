@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -14,6 +16,7 @@ import '../ContainerShape/container.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
 import '../LoginPage/login_page.dart';
+import '../StudentTeacherUi/ChatUsersListScreen/ensureFirebaseLogin/ensureFirebaseLogin.dart';
 import '../Utils/app_colors.dart';
 import '../Utils/image.dart';
 import '../Utils/string.dart';
@@ -68,6 +71,33 @@ class _RegisterPageState extends State<RegisterPage>
   List<dynamic> dropdownItems = [];
   List<dynamic> subjectList = [];
 
+  Future<String> ensureFirebaseLogin() async {
+    final auth = FirebaseAuth.instance;
+
+    if (auth.currentUser == null) {
+      final cred = await auth.signInAnonymously();
+      return cred.user!.uid;
+    }
+    return auth.currentUser!.uid;
+  }
+
+  Future<void> saveUserToFirestore({
+    required String firebaseUid,
+    required String appUserId,
+    required String name,
+    required String firebaseToken,
+  }) async {
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(firebaseUid)
+        .set({
+      "firebase_uid": firebaseUid,
+      "app_user_id": appUserId,
+      "name": name,
+      "firebase_token": firebaseToken,
+      "updatedAt": FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 
 
   Future<void> _registerUser(BuildContext context) async {
@@ -137,6 +167,7 @@ class _RegisterPageState extends State<RegisterPage>
           final SharedPreferences prefs = await SharedPreferences.getInstance();
           final String token = responseData['token'];
           final String userId = responseData['data']['id'].toString();
+          final String name = responseData['data']['name'].toString();
           final String user = responseData['data'].toString();
 
           // Save token using shared_preferences
@@ -144,6 +175,16 @@ class _RegisterPageState extends State<RegisterPage>
           await prefs.setString('id', userId);
           await prefs.setString('data', user);
           prefs.setBool('isLoggedIn', true);
+
+          final firebaseUid = await ensureFirebaseLogin();
+
+// ✅ Firestore me user add/update
+          await saveUserToFirestore(
+            firebaseUid: firebaseUid,
+            appUserId: userId, // API id
+            name: name,
+            firebaseToken: deviceToken ?? '',
+          );
 
           Navigator.pushReplacement(
             context,

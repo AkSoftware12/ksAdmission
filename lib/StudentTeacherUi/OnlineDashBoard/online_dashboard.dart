@@ -181,7 +181,7 @@ class _YearpageState extends State<OnlineDashBoard> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.history_edu),
-              label: 'History',
+              label: 'My Schedule',
             ),
           ],
           currentIndex: _selectedIndex,

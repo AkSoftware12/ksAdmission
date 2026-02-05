@@ -19,6 +19,7 @@ import 'DashBoardTeacher/home_bootom_teacher.dart';
 import 'HomePage/home_page.dart';
 import 'LoginPage/login_page.dart';
 import 'SplashScreen/splash_screen.dart';
+import 'StudentTeacherUi/ChatUsersListScreen/ensureFirebaseLogin/ensureFirebaseLogin.dart';
 import 'Utils/app_colors.dart';
 import 'Utils/image.dart';
 import 'Utils/string.dart';
@@ -52,6 +53,7 @@ Future main() async {
         : null,
   ) : await Firebase.initializeApp();
 
+  await ensureFirebaseLogin(); // ✅ add this
 
 
   // Lock orientation to portrait mode

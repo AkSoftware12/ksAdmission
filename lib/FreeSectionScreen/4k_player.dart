@@ -78,6 +78,7 @@ class _FullScreenNetworkVideoPlayerState extends State<FullScreenNetworkVideoPla
       liveStream: widget.live,
       useAsmsSubtitles: false,
       useAsmsTracks: false,
+
     );
 
     _controller = BetterPlayerController(

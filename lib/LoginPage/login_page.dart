@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -155,77 +157,138 @@ class _LoginPageState extends State<LoginPage> {
   void _hideLoader(BuildContext context) {
     if (Navigator.canPop(context)) Navigator.pop(context);
   }
+  Future<String> ensureFirebaseLogin() async {
+    final auth = FirebaseAuth.instance;
 
+    if (auth.currentUser == null) {
+      final cred = await auth.signInAnonymously();
+      return cred.user!.uid;
+    }
+    return auth.currentUser!.uid;
+  }
+
+  Future<void> saveUserToFirestore({
+    required String firebaseUid,
+    required String appUserId,
+    required String name,
+    required String firebaseToken,
+  }) async {
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(firebaseUid)
+        .set({
+      "firebase_uid": firebaseUid,
+      "app_user_id": appUserId,
+      "name": name,
+      "firebase_token": firebaseToken,
+      "updatedAt": FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 
   Future<void> loginUser(BuildContext context) async {
     await _showLoader(context);
 
     try {
-      final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-      final String? deviceToken = await firebaseMessaging.getToken();
+      final fcm = FirebaseMessaging.instance;
+      final String? deviceToken = await fcm.getToken();
+
+      debugPrint('device Model: $_deviceModel');
+
+      final uri = Uri.parse(login);
 
       final response = await http.post(
-        Uri.parse(login),
-        body: {
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'KSAdmissionApp/1.0 (Flutter)',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: jsonEncode({
           'email': emailController.text.trim(),
           'password': passwordController.text.trim(),
           'device_id': _deviceModel,
           'firebase_token': deviceToken ?? '',
-        },
+        }),
       );
 
       _hideLoader(context);
 
-      // ✅ ADD: safe json decode for all cases
+      debugPrint("LOGIN STATUS: ${response.statusCode}");
+      debugPrint("LOGIN BODY: ${response.body}");
+
+      // ✅ safe json decode
       Map<String, dynamic> body = {};
       try {
-        body = json.decode(response.body) as Map<String, dynamic>;
+        final decoded = json.decode(response.body);
+        if (decoded is Map<String, dynamic>) body = decoded;
       } catch (_) {}
 
       final int apiStatus =
           int.tryParse(body["status"]?.toString() ?? "") ?? response.statusCode;
 
-      final String msg = (body["message"] ?? "").toString().toLowerCase();
+      final String msgLower = (body["message"] ?? "").toString().toLowerCase();
 
-      // ✅ ADD: 404 Email not found
-      if (apiStatus == 404 || msg.contains("email not found")) {
+      if (apiStatus == 404 || msgLower.contains("email not found")) {
         showMastTeacherPopup(context, type: TeacherPopupType.emailNotFound);
         return;
       }
 
-      // ✅ ADD: 400 credentials not matched
-      if (apiStatus == 400 || msg.contains("credentials not matched")) {
+      if (apiStatus == 400 || msgLower.contains("credentials not matched")) {
         showMastTeacherPopup(context, type: TeacherPopupType.wrongPassword);
         return;
       }
 
-      if (response.statusCode == 200 && body.isNotEmpty) {
-        // ✅ ADD: user block check (status 0 = blocked)
+      // ✅ handle 401/403 properly (device restriction / forbidden)
+      if (apiStatus == 401 || apiStatus == 403) {
+        showMastTeacherPopup(
+          context,
+          type: TeacherPopupType.alreadyLoggedInOtherDevice,
+          customMessage:
+          "Login is restricted to the registered device only. Please use your registered device to continue.",
+        );
+        return;
+      }
+
+      if (apiStatus == 200 && body.isNotEmpty) {
+        final data = (body['data'] is Map<String, dynamic>)
+            ? body['data'] as Map<String, dynamic>
+            : <String, dynamic>{};
+
         final int userStatus =
-            int.tryParse(body['data']?['status']?.toString() ?? '') ?? -1;
+            int.tryParse(data['status']?.toString() ?? '') ?? -1;
 
         if (userStatus == 0) {
           showMastTeacherPopup(
             context,
-            type: TeacherPopupType.blocked, // ✅ add enum if not exists
+            type: TeacherPopupType.blocked,
             customMessage: "Your account is blocked. Please contact support.",
           );
           return;
         }
 
-        // ✅ status 1 = allow login
         if (userStatus == 1) {
-          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          final prefs = await SharedPreferences.getInstance();
+
           final String token = body['token']?.toString() ?? '';
-          final String userId = body['data']['id'].toString();
-          final String name = body['data']['name'].toString();
-          final String userData = json.encode(body['data']); // ✅ safe
+          final String userId = data['id'].toString();
+          final String name = data['name'].toString();
+          final String userData = json.encode(data);
 
           await prefs.setString('token', token);
           await prefs.setString('name', name);
           await prefs.setString('id', userId);
           await prefs.setString('data', userData);
           await prefs.setBool('isLoggedIn', true);
+
+          final firebaseUid = await ensureFirebaseLogin();
+
+          await saveUserToFirestore(
+            firebaseUid: firebaseUid,
+            appUserId: userId,
+            name: name,
+            firebaseToken: deviceToken ?? '',
+          );
 
           if (!mounted) return;
           Navigator.pushReplacement(
@@ -235,22 +298,20 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // ✅ if status neither 0 nor 1
         showMastTeacherPopup(
           context,
           type: TeacherPopupType.serverError,
           customMessage: "Invalid user status. Please contact support.",
         );
         return;
-      } else {
-        showMastTeacherPopup(
-          context,
-          type: TeacherPopupType.alreadyLoggedInOtherDevice, // ✅ new enum
-          customMessage:
-          "Login is restricted to the registered device only.Please use your registered device to continue.",
-        );
-
       }
+
+      showMastTeacherPopup(
+        context,
+        type: TeacherPopupType.serverError,
+        customMessage:
+        (body['message'] ?? "Failed to log in. Please try again.").toString(),
+      );
     } catch (e) {
       _hideLoader(context);
       emailController.clear();
@@ -311,12 +372,23 @@ class _LoginPageState extends State<LoginPage> {
 
           final String token = body['token']?.toString() ?? '';
           final String userId = body['data']['id'].toString();
+          final String userName = body['data']['name'].toString();
           final String userData = json.encode(body['data']);
 
           await prefs.setString('token', token);
           await prefs.setString('id', userId);
           await prefs.setString('data', userData);
           await prefs.setBool('isLoggedInTeacher', true);
+
+          final firebaseUid = await ensureFirebaseLogin();
+
+// ✅ Firestore me user add/update
+          await saveUserToFirestore(
+            firebaseUid: firebaseUid,
+            appUserId: userId, // API id
+            name: userName,
+            firebaseToken: deviceToken ?? '',
+          );
 
           if (!mounted) return;
           Navigator.pushReplacement(

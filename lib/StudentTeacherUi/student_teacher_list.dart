@@ -10,6 +10,7 @@ import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomeScreen/Year/SubjectScreen/webView.dart';
 import '../baseurl/baseurl.dart';
+import 'ChatUsersListScreen/chat_user-screen.dart';
 class TeacherListScreen extends StatefulWidget {
   @override
   State<TeacherListScreen> createState() => _TeacherListScreenState();
@@ -19,9 +20,14 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
   List<dynamic> teachersList = [];
   bool isLoading = true; // ✅ added
 
+  String nickname = '';
+  String photoUrl = '';
+  String userId = '';
+
   @override
   void initState() {
     super.initState();
+    fetchProfileData();
     hitTeacherList();
   }
 
@@ -62,6 +68,26 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
       print("Error in hitTeacherList: $e");
     } finally {
       if (mounted) setState(() => isLoading = false); // ✅ stop loading
+    }
+  }
+
+  Future<void> fetchProfileData() async {
+    setState(() {});
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString(
+      'token',
+    );
+    final Uri uri = Uri.parse(getProfile);
+    final Map<String, String> headers = {'Authorization': 'Bearer $token'};
+    final response = await http.get(uri, headers: headers);
+
+    if (response.statusCode == 200) {
+      // final jsonData = jsonDecode(response.body);
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+
+      setState(() {
+        userId = jsonData['user']['id'].toString();
+      });
     }
   }
 
@@ -269,7 +295,7 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
               ),
             );
           }
-          return TeacherCard(teacher: teachersList[index - 1]);
+          return TeacherCard(teacher: teachersList[index - 1],userName: nickname,userPhoto: photoUrl,userId: userId,);
         },
       ),
     );
@@ -279,7 +305,11 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
 class TeacherCard extends StatelessWidget {
   final Map<String, dynamic> teacher;
 
-  const TeacherCard({super.key, required this.teacher});
+  final String? userName;
+  final String? userPhoto;
+  final String? userId;
+
+  const TeacherCard({super.key, required this.teacher, this.userName, this.userPhoto, this.userId});
 
   String _safeText(dynamic v, {String fallback = ""}) {
     if (v == null) return fallback;
@@ -291,6 +321,7 @@ class TeacherCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = _safeText(teacher['name'], fallback: "Teacher");
+    final teacherId = _safeText(teacher['id'],);
     final qualification = _safeText(
       teacher['qualification'],
       fallback: "Qualification",
@@ -373,7 +404,7 @@ class TeacherCard extends StatelessWidget {
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) {
                                       return Image.network(
-                                        'https://i.postimg.cc/HjjPV3YB/Screenshot-2026-01-02-103653-removebg-preview.png',
+                                        'https://img.freepik.com/free-vector/purple-man-with-blue-hair_24877-82003.jpg',
                                         width: 60.sp,
                                         height: 60.sp,
                                         fit: BoxFit.cover,
@@ -617,27 +648,28 @@ class TeacherCard extends StatelessWidget {
                           ),
                           SizedBox(width: 10.w),
 
-                          // Chat (same logic, better UI)
-                          Expanded(
-                            child:_softButton(
-                              icon: Icons.chat_rounded,
-                              text: "Chat",
-                              onTap: () {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (_) => ChatUserScreen(
-                                //       chatId: '',
-                                //       userName: '',
-                                //       image: '',
-                                //       currentUser: '',
-                                //       chatUser: '',
-                                //     ),
-                                //   ),
-                                // );
-                              },
-                            )
-                          ),
+                          // // Chat (same logic, better UI)
+                          // Expanded(
+                          //   child:_softButton(
+                          //     icon: Icons.chat_rounded,
+                          //     text: "Chat",
+                          //     onTap: () {
+                          //
+                          //       Navigator.push(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //           builder: (_) => ChatUserScreen(
+                          //             chatId: "", // auto generate inside screen
+                          //             userName: name,
+                          //             image: imageUrl,
+                          //             currentUser: userId.toString(),
+                          //             chatUser: teacherId,
+                          //           ),
+                          //         ),
+                          //       );
+                          //     },
+                          //   )
+                          // ),
                         ],
                       ),
                     ],

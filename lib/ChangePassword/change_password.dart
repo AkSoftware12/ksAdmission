@@ -1,4 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -8,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../LoginPage/login_page.dart';
 import '../Utils/app_colors.dart';
 import '../baseurl/baseurl.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+
 
 class ChangePasswordPage extends StatefulWidget {
 
@@ -19,6 +24,8 @@ class ChangePasswordPage extends StatefulWidget {
 }
 
 class _ChangePasswordPageState extends State<ChangePasswordPage> {
+  static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+  String _deviceModel = "Loading...";
   final _newPasswordController = TextEditingController();
 
   final _confirmPasswordController = TextEditingController();
@@ -29,87 +36,105 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   final _focusNode = FocusNode();
 
+
+
+  Future<void> initPlatformState() async {
+    String? deviceModel = "Unknown";
+
+    try {
+      if (kIsWeb) {
+        final webInfo = await deviceInfoPlugin.webBrowserInfo;
+        deviceModel = webInfo.appName;
+      } else {
+        deviceModel = switch (defaultTargetPlatform) {
+          TargetPlatform.android => (await deviceInfoPlugin.androidInfo).model,
+          TargetPlatform.iOS => (await deviceInfoPlugin.iosInfo).model,
+          TargetPlatform.linux => (await deviceInfoPlugin.linuxInfo).prettyName,
+          TargetPlatform.windows => (await deviceInfoPlugin.windowsInfo).productName,
+          TargetPlatform.macOS => (await deviceInfoPlugin.macOsInfo).model,
+          TargetPlatform.fuchsia => "Fuchsia platform isn't supported",
+        };
+      }
+    } on PlatformException {
+      deviceModel = "Failed to get platform version.";
+    }
+
+    if (!mounted) return;
+    setState(() => _deviceModel = deviceModel ?? "Unknown");
+  }
+
+
   Future<void> passwordChangeApi(BuildContext context) async {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(
-                color: Colors.orangeAccent,
-              ),
-              // SizedBox(width: 16.0),
-              // Text("Logging in..."),
-            ],
-          ),
-        );
-      },
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
+      setState(() => _isLoading = true);
 
+      final password = _newPasswordController.text.trim();
+      final confirmpassword = _confirmPasswordController.text.trim();
 
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('tokenForgot') ?? '';
 
+      final fcm = FirebaseMessaging.instance;
+      final String? deviceToken = await fcm.getToken();
 
-        setState(() {
-          _isLoading = true;
-        });
+      final response = await http.post(
+        Uri.parse(changePassword),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'User-Agent': 'KSAdmissionApp/1.0 (Flutter)',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: jsonEncode({
+          'password': password,
+          'confirm_password': confirmpassword,
+          // ✅ IMPORTANT: send these too
+          'device_id': _deviceModel,
+          'firebase_token': deviceToken ?? '',
+        }),
+      );
 
-        final password = _newPasswordController.text;
-        final confirmpassword = _confirmPasswordController.text;
+      debugPrint("CHANGE PASS STATUS: ${response.statusCode}");
+      debugPrint("CHANGE PASS BODY: ${response.body}");
 
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
-        final String? token = prefs.getString('tokenForgot');
+      setState(() => _isLoading = false);
+      Navigator.pop(context); // ✅ close loader ALWAYS
 
-        final response = await http.post(
-          Uri.parse(changePassword),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({'password': password,'confirm_password':confirmpassword }),
+      if (response.statusCode == 200) {
+        await prefs.remove('tokenForgot'); // ✅ clear reset token
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => LoginPage()),
         );
-        setState(() {
-          _isLoading =
-          false; // Set loading state to false after registration completes
-        });
-        if (response.statusCode == 200) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LoginPage(),
-            ),
-          );
+        return;
+      }
 
-          print('Change Password successfully!');
-          // print(token);
-          print(response.body);
-        } else {
-          // Registration failed
-          // You may handle the error response here, e.g., show an error message
-          print('password failed!');
-          Navigator.pop(context); // Close the progress dialog
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Failed to log in. Please try again.'),
-          ));
-        }
-
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Change password failed: ${response.body}")),
+      );
     } catch (e) {
-      setState(() {
-        _isLoading =
-        false; // Set loading state to false after registration completes
-      });
-      Navigator.pop(context); // Close the progress dialog
-      // Handle errors appropriately
-      print('Error during login: $e');
-      // Show a snackbar or display an error message
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to log in. Please try again.'),
-      ));
+      setState(() => _isLoading = false);
+      Navigator.pop(context); // ✅ close loader
+
+      debugPrint("CHANGE PASS ERROR: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed. Please try again.')),
+      );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initPlatformState();
   }
 
   @override

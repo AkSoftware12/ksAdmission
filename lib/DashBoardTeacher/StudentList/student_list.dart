@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import '../../CommonCalling/progressbarPrimari.dart';
+import '../../StudentTeacherUi/ChatUsersListScreen/chat_user-screen.dart';
 import '../StudentProfile/student_profile.dart';
 
 class StudentListScreen extends StatefulWidget {
@@ -18,11 +19,32 @@ class StudentListScreen extends StatefulWidget {
 class _StudentListScreenState extends State<StudentListScreen> {
   bool isLoading = true;
   List<dynamic> bookingList = [];
+  String userId = '';
 
   @override
   void initState() {
     super.initState();
+    fetchTeacherProfileData();
     hitBookingList();
+  }
+  Future<void> fetchTeacherProfileData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+    final Uri uri = Uri.parse(teacherProfile);
+    final Map<String, String> headers = {'Authorization': 'Bearer $token'};
+    final response = await http.get(uri, headers: headers);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+
+      print('Teacher data $jsonData');
+
+      setState(() {
+        userId = jsonData['data']['id'].toString();
+      });
+    } else {
+      throw Exception('Failed to load profile data');
+    }
   }
 
   Future<void> hitBookingList() async {
@@ -76,7 +98,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
             itemCount: bookingList.length,
             itemBuilder: (context, index) {
               final item = (bookingList[index] ?? {}) as Map<String, dynamic>;
-              return AppointmentCard(booking: item);
+              return AppointmentCard(booking: item,userId: userId,);
             },
           ),
         ),
@@ -242,8 +264,9 @@ class _DataNotFound extends StatelessWidget {
 /// =====================
 class AppointmentCard extends StatelessWidget {
   final Map<String, dynamic> booking;
+  final String? userId;
 
-  const AppointmentCard({super.key, required this.booking});
+  const AppointmentCard({super.key, required this.booking, this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -260,7 +283,7 @@ class AppointmentCard extends StatelessWidget {
     final String time = (slot['start_time'] ?? '').toString();
     final String uniqueId = (booking['unique_id'] ?? '').toString();
 
-    final int userId = (user['id'] is int)
+    final int userlistId = (user['id'] is int)
         ? user['id'] as int
         : int.tryParse((user['id'] ?? '0').toString()) ?? 0;
 
@@ -409,7 +432,7 @@ class AppointmentCard extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => StudentProfileScreen(id: userId),
+                                builder: (context) => StudentProfileScreen(id: userlistId),
                               ),
                             );
                           },
@@ -421,7 +444,21 @@ class AppointmentCard extends StatelessWidget {
                           icon: Icons.chat_bubble_rounded,
                           text: "Chat",
                           onTap: () {
-                            // TODO: Your chat logic
+
+                            print('currentUserid$userId');
+                            print('userid $userlistId');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChatUserScreen(
+                                  chatId: "", // auto generate inside screen
+                                  userName: name,
+                                  image: pic,
+                                  currentUser: userId.toString(),
+                                  chatUser: userlistId.toString(), canSend: true,
+                                ),
+                              ),
+                            );
                           },
                         ),
                       ),

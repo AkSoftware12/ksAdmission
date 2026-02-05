@@ -542,7 +542,7 @@ class _TeacherProfileScreenState extends State<ScheduleScreen> {
                                               fit: BoxFit.cover,
                                               errorBuilder: (_, __, ___) {
                                                 return Image.network(
-                                                  'https://i.postimg.cc/HjjPV3YB/Screenshot-2026-01-02-103653-removebg-preview.png',
+                                                  'https://img.freepik.com/free-vector/purple-man-with-blue-hair_24877-82003.jpg',
                                                   width: 60.sp,
                                                   height: 60.sp,
                                                   fit: BoxFit.cover,
