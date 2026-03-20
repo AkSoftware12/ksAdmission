@@ -49,6 +49,7 @@ var submit = "${baseUrl}paper/submit";
 var plan = "${baseUrl}plan";
 var getNewsList = "${baseUrl}news-list";
 var news = "${baseUrl}news/";
+var joinClass = "${baseUrl}live-class/join";
 var offlineplan = "${baseUrl}offline-plan";
 var dailyQuiz = "${baseUrl}getquiz";
 var planCreate = "${baseUrl}planCreate";

@@ -202,7 +202,7 @@ class _LiveClassScreenState extends State<TeacherLiveClassScreen>
           videoUrl: url,
           live:true,
           title: item.title,
-          item: item, // ✅ always single item
+          item: item, isLocked: true, // ✅ always single item
         ),
       ),
     );
@@ -218,7 +218,7 @@ class _LiveClassScreenState extends State<TeacherLiveClassScreen>
           videoUrl: url,
           live:false,
           title: item.title,
-          item: item, // ✅ always single item
+          item: item, isLocked: true, // ✅ always single item
         ),
       ),
     );

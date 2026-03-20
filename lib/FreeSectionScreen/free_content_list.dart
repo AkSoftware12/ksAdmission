@@ -89,7 +89,7 @@ class _FreeDemoClassPageState extends State<FreeDemoClassPage> {
           videoUrl: url,
           live: false,
           title: item.title,
-          item: item,
+          item: item, isLocked: true,
         ),
       ),
     );

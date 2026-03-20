@@ -131,14 +131,14 @@ class _PlanScreenState extends State<PlanScreen> {
       }
     } catch (e) {
       setState(() => isDataLoading = false);
-      Fluttertoast.showToast(
-        msg: "Error loading plans: $e",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        fontSize: 16.sp,
-      );
+      // Fluttertoast.showToast(
+      //   msg: "Error loading plans: $e",
+      //   toastLength: Toast.LENGTH_LONG,
+      //   gravity: ToastGravity.BOTTOM,
+      //   backgroundColor: Colors.redAccent,
+      //   textColor: Colors.white,
+      //   fontSize: 16.sp,
+      // );
     }
   }
 
@@ -161,14 +161,14 @@ class _PlanScreenState extends State<PlanScreen> {
         throw Exception('Failed to load profile data');
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: "Error loading profile: $e",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        fontSize: 16.sp,
-      );
+      // Fluttertoast.showToast(
+      //   msg: "Error loading profile: $e",
+      //   toastLength: Toast.LENGTH_LONG,
+      //   gravity: ToastGravity.BOTTOM,
+      //   backgroundColor: Colors.redAccent,
+      //   textColor: Colors.white,
+      //   fontSize: 16.sp,
+      // );
     }
   }
 
@@ -191,14 +191,14 @@ class _PlanScreenState extends State<PlanScreen> {
         throw Exception('Failed to load Razorpay key');
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: "Error loading Razorpay key: $e",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        fontSize: 16.sp,
-      );
+      // Fluttertoast.showToast(
+      //   msg: "Error loading Razorpay key: $e",
+      //   toastLength: Toast.LENGTH_LONG,
+      //   gravity: ToastGravity.BOTTOM,
+      //   backgroundColor: Colors.redAccent,
+      //   textColor: Colors.white,
+      //   fontSize: 16.sp,
+      // );
     }
   }
 
@@ -240,25 +240,25 @@ class _PlanScreenState extends State<PlanScreen> {
         openCheckout(razorpayKeyId, double.parse(price) * 100);
       } else {
         hideLoadingDialog(context);
-        Fluttertoast.showToast(
-          msg: "Failed to create order: ${response.statusCode}",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.redAccent,
-          textColor: Colors.white,
-          fontSize: 16.sp,
-        );
+        // Fluttertoast.showToast(
+        //   msg: "Failed to create order: ${response.statusCode}",
+        //   toastLength: Toast.LENGTH_LONG,
+        //   gravity: ToastGravity.BOTTOM,
+        //   backgroundColor: Colors.redAccent,
+        //   textColor: Colors.white,
+        //   fontSize: 16.sp,
+        // );
       }
     } catch (e) {
       hideLoadingDialog(context);
-      Fluttertoast.showToast(
-        msg: "Error creating order: $e",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        fontSize: 16.sp,
-      );
+      // Fluttertoast.showToast(
+      //   msg: "Error creating order: $e",
+      //   toastLength: Toast.LENGTH_LONG,
+      //   gravity: ToastGravity.BOTTOM,
+      //   backgroundColor: Colors.redAccent,
+      //   textColor: Colors.white,
+      //   fontSize: 16.sp,
+      // );
     }
   }
 
@@ -390,14 +390,14 @@ class _PlanScreenState extends State<PlanScreen> {
       }
     } catch (e) {
       hideLoadingDialog(context);
-      Fluttertoast.showToast(
-        msg: "Network Error: $e",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        fontSize: 16.sp,
-      );
+      // Fluttertoast.showToast(
+      //   msg: "Network Error: $e",
+      //   toastLength: Toast.LENGTH_LONG,
+      //   gravity: ToastGravity.BOTTOM,
+      //   backgroundColor: Colors.redAccent,
+      //   textColor: Colors.white,
+      //   fontSize: 16.sp,
+      // );
     }
   }
 
@@ -424,14 +424,14 @@ class _PlanScreenState extends State<PlanScreen> {
         hideLoadingDialog(context);
       } catch (e) {
         hideLoadingDialog(context);
-        Fluttertoast.showToast(
-          msg: "Error initiating payment: $e",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.redAccent,
-          textColor: Colors.white,
-          fontSize: 16.sp,
-        );
+        // Fluttertoast.showToast(
+        //   msg: "Error initiating payment: $e",
+        //   toastLength: Toast.LENGTH_LONG,
+        //   gravity: ToastGravity.BOTTOM,
+        //   backgroundColor: Colors.redAccent,
+        //   textColor: Colors.white,
+        //   fontSize: 16.sp,
+        // );
       }
     });
   }
@@ -490,28 +490,28 @@ class _PlanScreenState extends State<PlanScreen> {
       response.error,
     );
 
-    Fluttertoast.showToast(
-      msg: "Payment Error: ${response.message}",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.redAccent,
-      textColor: Colors.white,
-      fontSize: 16.sp,
-    );
+    // Fluttertoast.showToast(
+    //   msg: "Payment Error: ${response.message}",
+    //   toastLength: Toast.LENGTH_LONG,
+    //   gravity: ToastGravity.BOTTOM,
+    //   backgroundColor: Colors.redAccent,
+    //   textColor: Colors.white,
+    //   fontSize: 16.sp,
+    // );
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     // ✅ FIX: external wallet pe bhi safety close
     hideLoadingDialog(context);
 
-    Fluttertoast.showToast(
-      msg: "External Wallet: ${response.walletName}",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.redAccent,
-      textColor: Colors.white,
-      fontSize: 16.sp,
-    );
+    // Fluttertoast.showToast(
+    //   msg: "External Wallet: ${response.walletName}",
+    //   toastLength: Toast.LENGTH_LONG,
+    //   gravity: ToastGravity.BOTTOM,
+    //   backgroundColor: Colors.redAccent,
+    //   textColor: Colors.white,
+    //   fontSize: 16.sp,
+    // );
   }
 
   void _showPaymentSuccessDialog(BuildContext context) {

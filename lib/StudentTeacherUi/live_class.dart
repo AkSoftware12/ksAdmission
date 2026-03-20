@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -221,7 +222,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
           videoUrl: url,
           live: true,
           title: item.title,
-          item: item,
+          item: item, isLocked: widget.isLocked,
         ),
       ),
     );
@@ -238,14 +239,14 @@ class _LiveClassScreenState extends State<LiveClassScreen>
           videoUrl: url,
           live: false,
           title: item.title,
-          item: item,
+          item: item, isLocked: widget.isLocked,
         ),
       ),
     );
   }
 
   // ✅ LOCK overlay (thumbnail par)
-  Widget _lockOverlay() {
+  Widget _lockOverlay()   {
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
@@ -446,28 +447,29 @@ class _LiveClassScreenState extends State<LiveClassScreen>
 
           return _classCard(
             title: item.title,
-            teacher: "${item.teacherId ?? ''}",
+            teacher: item.teacherId?? '',
             time: _prettyDateTime(item),
             meta: item.className ?? item.title,
             badgeText: "LIVE",
             badgeColor: const Color(0xFFEF4444),
-            ctaText: _isLocked
-                ? "Locked"
-                : ((meet == null || meet.isEmpty)
-                ? "Not Ready"
-                : "Join Now"),
-            ctaIcon: _isLocked
-                ? Icons.lock_rounded
-                : Icons.play_arrow_rounded,
+            // ctaText: _isLocked
+            //     ? "Locked"
+            //     : ((meet == null || meet.isEmpty)
+            //     ? "Not Ready"
+            //     : "Join Now"),
+            ctaText:( "Join Now"),
+            // ctaIcon: _isLocked
+            //     ? Icons.lock_rounded
+            //     : Icons.play_arrow_rounded,
+            ctaIcon:  Icons.play_arrow_rounded,
             isCtaEnabled: !_isLocked && !(meet == null || meet.isEmpty),
             locked: _isLocked,
             thumbnailUrl: _fullThumb(item.thumbnail),
             onTap: () {
-              // ✅ FIX: locked pe bhi popup open hona chahiye
-              if (_isLocked) {
-                _openSubscribePopupOnce();
-                return;
-              }
+              // if (_isLocked) {
+              //   _openSubscribePopupOnce();
+              //   return;
+              // }
               if (meet == null || meet.isEmpty) return;
               _openVideo(item);
             },
@@ -495,7 +497,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
           final item = _upcomingList[index];
           return _upcomingCard(
             title: item.title,
-            teacher: "Teacher ID: ${item.teacherId ?? ''}",
+            teacher: item.teacherId ?? '',
             time: _prettyDateTime(item),
             meta: item.className ?? item.title,
             badgeText: item.apiStatus.toString(),
@@ -538,7 +540,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
 
           return _completedCard(
             title: item.title,
-            teacher: "Teacher ID: ${item.teacherId ?? ''}",
+            teacher: "${item.teacherId ?? ''}",
             time: _prettyDateTime(item),
             meta: item.className ?? item.title,
             badgeText: "DONE",
@@ -559,10 +561,10 @@ class _LiveClassScreenState extends State<LiveClassScreen>
               _openUrl(pdfUrl);
             },
             onTap: () {
-              if (_isLocked) {
-                _openSubscribePopupOnce();
-                return;
-              }
+              // if (_isLocked) {
+              //   _openSubscribePopupOnce();
+              //   return;
+              // }
               if (!hasPlayable) return;
               _openVideo2(item);
             },
@@ -720,14 +722,14 @@ class _LiveClassScreenState extends State<LiveClassScreen>
       borderRadius: BorderRadius.circular(5),
       // ✅ FIX: locked hone par onTap null mat karo, popup/open logic onTap ke andar chalega
       onTap: () {
-        if (locked) {
-          _openSubscribePopupOnce();
-          return;
-        }
+        // if (locked) {
+        //   _openSubscribePopupOnce();
+        //   return;
+        // }
         onTap();
       },
       child: Container(
-        padding: EdgeInsets.all(5.w),
+        padding: EdgeInsets.all(3.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
@@ -746,51 +748,20 @@ class _LiveClassScreenState extends State<LiveClassScreen>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    height: 80.sp,
-                    width: 110,
-                    color: Colors.black12,
-                  ),
-                  Image.network(
-                    thumbnailUrl,
-                    height: 80.sp,
-                    width: 110,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            height: 80.sp,
-                            width: 110,
-                            color: Colors.black12,
-                          ),
-                          const PrimaryCircularProgressWidget(),
-                        ],
-                      );
-                    },
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 80.sp,
-                      width: 110,
-                      color: Colors.black12,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.broken_image_outlined,
-                        color: Colors.black45,
-                      ),
-                    ),
-                  ),
-                  if (locked) _lockOverlay(),
-                ],
-              ),
-            ),
-            SizedBox(width: 12.w),
+        ClipRRect(
+        borderRadius: BorderRadius.circular(5),
+        child:   CachedNetworkImage(
+          imageUrl: thumbnailUrl,
+          height: 80.sp,
+          width: 120,
+          fit: BoxFit.fill,
+          filterQuality: FilterQuality.high,
+          placeholder: (context, url) => const PrimaryCircularProgressWidget(),
+          errorWidget: (context, url, error) =>
+          const Icon(Icons.broken_image_outlined),
+        )
+        ),
+            SizedBox(width: 5.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -804,10 +775,9 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
                             color: const Color(0xFF010071),
-                            height: 1.25,
                           ),
                         ),
                       ),
@@ -822,19 +792,18 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                       SizedBox(width: 4.w),
                       Expanded(
                         child: Text(
-                          'by $teacher',
+                          '$teacher',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 11.5.sp,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w500,
                             color: Colors.black87,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 2.h),
                   Row(
                     children: [
                       Icon(Icons.schedule_rounded,
@@ -846,7 +815,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 10.8.sp,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.w500,
                             color: Colors.black87,
                           ),
@@ -854,7 +823,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                       ),
                     ],
                   ),
-                  SizedBox(height: 1.h),
+                  SizedBox(height: 2.h),
                   Row(
                     children: [
                       Expanded(
@@ -869,7 +838,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 10.7.sp,
+                                  fontSize: 10.sp,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.black87,
                                 ),
@@ -878,52 +847,30 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           ],
                         ),
                       ),
-                      Opacity(
-                        opacity: enabled ? 1 : 0.45,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 5.w,
-                            vertical: 3.h,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            gradient: LinearGradient(
-                              colors: enabled
-                                  ? const [
-                                Color(0xFF0A1AFF),
-                                Color(0xFF0016C7)
-                              ]
-                                  : const [
-                                Color(0xFF9CA3AF),
-                                Color(0xFF9CA3AF)
-                              ],
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 5.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF0A1AFF),
+                          borderRadius: BorderRadius.circular(5),
+
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(ctaIcon, size: 16.sp, color: Colors.white),
+                            SizedBox(width: 2.w),
+                            Text(
+                              ctaText,
+                              style: GoogleFonts.poppins(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
                             ),
-                            boxShadow: enabled
-                                ? [
-                              BoxShadow(
-                                color: const Color(0xFF0A1AFF)
-                                    .withOpacity(0.35),
-                                blurRadius: 16,
-                                offset: const Offset(0, 8),
-                              ),
-                            ]
-                                : [],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(ctaIcon, size: 16.sp, color: Colors.white),
-                              SizedBox(width: 2.w),
-                              Text(
-                                ctaText,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10.sp,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
                       ),
                     ],
@@ -966,7 +913,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
         onTap();
       },
       child: Container(
-        padding: EdgeInsets.all(5.w),
+        padding: EdgeInsets.all(3.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
@@ -986,50 +933,28 @@ class _LiveClassScreenState extends State<LiveClassScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(5),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(
-                    height: 80.sp,
-                    width: 110,
-                    color: Colors.black12,
-                  ),
-                  Image.network(
-                    thumbnailUrl,
-                    height: 80.sp,
-                    width: 110,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            height: 80.sp,
-                            width: 110,
-                            color: Colors.black12,
-                          ),
-                          const PrimaryCircularProgressWidget(),
-                        ],
-                      );
-                    },
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 80.sp,
-                      width: 110,
-                      color: Colors.black12,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.broken_image_outlined,
-                        color: Colors.black45,
-                      ),
-                    ),
+                  ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child:   CachedNetworkImage(
+                        imageUrl: thumbnailUrl,
+                        height: 80.sp,
+                        width: 120,
+                        fit: BoxFit.fill,
+                        filterQuality: FilterQuality.high,
+                        placeholder: (context, url) => const PrimaryCircularProgressWidget(),
+                        errorWidget: (context, url, error) =>
+                        const Icon(Icons.broken_image_outlined),
+                      )
                   ),
                   if (locked) _lockOverlay(),
                 ],
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 5.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1043,10 +968,10 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
                             color: const Color(0xFF010071),
-                            height: 1.25,
+                            // height: 1.25,
                           ),
                         ),
                       ),
@@ -1063,6 +988,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                         },
                         child: Icon(
                           Icons.share,
+                          size: 15,
                           color: locked ? Colors.black26 : Colors.black54,
                         ),
                       ),
@@ -1076,19 +1002,18 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                       SizedBox(width: 4.w),
                       Expanded(
                         child: Text(
-                          'by $teacher',
+                          '$teacher',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 11.5.sp,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w500,
                             color: Colors.black87,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 2.h),
                   Row(
                     children: [
                       Icon(Icons.schedule_rounded,
@@ -1100,7 +1025,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 10.8.sp,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.w500,
                             color: Colors.black87,
                           ),
@@ -1108,7 +1033,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                       ),
                     ],
                   ),
-                  SizedBox(height: 1.h),
+                  SizedBox(height: 2.h),
                   Row(
                     children: [
                       Expanded(
@@ -1123,7 +1048,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 10.7.sp,
+                                  fontSize: 10.sp,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.black87,
                                 ),
@@ -1239,7 +1164,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
         onTap();
       },
       child: Container(
-        padding: EdgeInsets.all(5.w),
+        padding: EdgeInsets.all(3.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
@@ -1259,44 +1184,22 @@ class _LiveClassScreenState extends State<LiveClassScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(5),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(
-                    height: 80.sp,
-                    width: 110,
-                    color: Colors.black12,
-                  ),
-                  Image.network(
-                    thumbnailUrl,
-                    height: 80.sp,
-                    width: 110,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            height: 80.sp,
-                            width: 110,
-                            color: Colors.black12,
-                          ),
-                          const PrimaryCircularProgressWidget(),
-                        ],
-                      );
-                    },
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 80.sp,
-                      width: 110,
-                      color: Colors.black12,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.broken_image_outlined,
-                        color: Colors.black45,
-                      ),
-                    ),
+                  ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child:   CachedNetworkImage(
+                        imageUrl: thumbnailUrl,
+                        height: 80.sp,
+                        width: 120,
+                        fit: BoxFit.fill,
+                        filterQuality: FilterQuality.high,
+                        placeholder: (context, url) => const PrimaryCircularProgressWidget(),
+                        errorWidget: (context, url, error) =>
+                        const Icon(Icons.broken_image_outlined),
+                      )
                   ),
                 ],
               ),
@@ -1315,18 +1218,14 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
                             color: const Color(0xFF010071),
-                            height: 1.25,
                           ),
                         ),
                       ),
-                      SizedBox(width: 6.w),
-                      _badge(badgeText, badgeColor),
                     ],
                   ),
-                  SizedBox(height: 1.h),
                   Row(
                     children: [
                       Icon(Icons.person_rounded,
@@ -1334,19 +1233,18 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                       SizedBox(width: 4.w),
                       Expanded(
                         child: Text(
-                          'by $teacher',
+                          '$teacher',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 11.5.sp,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w500,
                             color: Colors.black87,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 2.h),
                   Row(
                     children: [
                       Icon(Icons.class_,
@@ -1358,7 +1256,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 10.8.sp,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.w500,
                             color: Colors.black87,
                           ),
@@ -1377,7 +1275,7 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 10.8.sp,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.w500,
                             color: Colors.black87,
                           ),
@@ -1385,6 +1283,15 @@ class _LiveClassScreenState extends State<LiveClassScreen>
                       ),
                     ],
                   ),
+                  SizedBox(height: 2.h),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      _badge(badgeText, badgeColor),
+                    ],
+                  ),
+
                 ],
               ),
             ),

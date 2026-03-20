@@ -6,10 +6,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../Utils/app_colors.dart';
 import '../CommonCalling/progressbarPrimari.dart';
 import '../HexColorCode/HexColor.dart';
 import '../HomePage/home_page.dart';
+import '../WebView/webview.dart';
 import '../baseurl/baseurl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -688,7 +690,16 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
           ],
         ),
         child: FloatingActionButton.extended(
-          onPressed: _showPaymentBottomSheet,
+          // onPressed: _showPaymentBottomSheet,
+          onPressed: () async {
+            final Uri url = Uri.parse('https://ksadmission.in/neet-course');
+            if (!await launchUrl(
+            url,
+            mode: LaunchMode.externalApplication, // ✅ Important (browser open karega)
+            )) {
+            throw Exception('Could not launch $url');
+            }
+          },
           elevation: 0,
           backgroundColor: Colors.transparent,
           splashColor: Colors.white24,
@@ -705,13 +716,11 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Row(
+            child:  Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.lock_outline, color: Colors.white, size: 20),
-                SizedBox(width: 10.w),
                 Text(
-                  "Pay ₹ ${widget.data['price'] ?? '0'}",
+                  "Purchase",
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 15.5.sp,
@@ -721,6 +730,24 @@ class _PopularPlanScreenState extends State<PopularPlanScreen> {
                 ),
               ],
             ),
+
+
+            // Row(
+            //   mainAxisSize: MainAxisSize.min,
+            //   children: [
+            //     const Icon(Icons.lock_outline, color: Colors.white, size: 20),
+            //     SizedBox(width: 10.w),
+            //     Text(
+            //       "Pay ₹ ${widget.data['price'] ?? '0'}",
+            //       style: GoogleFonts.poppins(
+            //         color: Colors.white,
+            //         fontSize: 15.5.sp,
+            //         fontWeight: FontWeight.w600,
+            //         letterSpacing: 0.3,
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ),
         ),
       ),

@@ -34,7 +34,7 @@ class ContentItem {
   final String? videoUrl;
 
   // live class fields
-  final int? teacherId;
+  final String? teacherId;
   final String? className;
   final String? meetingUrl;
   final String? classDate;
@@ -85,7 +85,7 @@ class ContentItem {
       id: j['id'] ?? 0,
       title: (j['title'] ?? '').toString(),
       thumbnail: (j['thumbnail'] ?? '').toString(),
-      teacherId: j['teacher_id'],
+      teacherId: (j['teacher_name'] ?? '').toString(),
       className: (j['class'] ?? '').toString(),
       meetingUrl: j['meeting_url']?.toString(),
       classDate: j['class_date']?.toString(),

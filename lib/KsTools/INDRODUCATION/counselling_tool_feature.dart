@@ -134,7 +134,7 @@ class _FeatureToolsPageState extends State<FeatureToolsPage>
   void initializeVideo() {
     final dataSource = BetterPlayerDataSource(
       BetterPlayerDataSourceType.network,
-      "https://apiweb.ksadmission.in/upload/video/1747803890WhatsApp_Video_2025-05-21_at_10.23.13_AM.mp4",
+      "https://apiweb.ksadmission.in/upload/video/1773646977WhatsApp_Video_2026-03-16_at_11.51.00.mp4",
       cacheConfiguration: const BetterPlayerCacheConfiguration(
         useCache: true,
         preCacheSize: 10 * 1024 * 1024,

@@ -414,37 +414,37 @@ class TeacherCard extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(height: 5),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10.w,
-                                  vertical: 0.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: HexColor('#010071').withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.18),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.star_rounded,
-                                      color: Colors.amber,
-                                      size: 10.sp,
-                                    ),
-                                    SizedBox(width: 4.w),
-                                    Text(
-                                      rating,
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 8.sp,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              // Container(
+                              //   padding: EdgeInsets.symmetric(
+                              //     horizontal: 10.w,
+                              //     vertical: 0.h,
+                              //   ),
+                              //   decoration: BoxDecoration(
+                              //     color: HexColor('#010071').withOpacity(0.7),
+                              //     borderRadius: BorderRadius.circular(10),
+                              //     border: Border.all(
+                              //       color: Colors.white.withOpacity(0.18),
+                              //     ),
+                              //   ),
+                              //   child: Row(
+                              //     children: [
+                              //       Icon(
+                              //         Icons.star_rounded,
+                              //         color: Colors.amber,
+                              //         size: 10.sp,
+                              //       ),
+                              //       SizedBox(width: 4.w),
+                              //       Text(
+                              //         rating,
+                              //         style: GoogleFonts.poppins(
+                              //           color: Colors.white,
+                              //           fontWeight: FontWeight.w600,
+                              //           fontSize: 8.sp,
+                              //         ),
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
                             ],
                           ),
 

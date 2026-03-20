@@ -467,7 +467,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ),
                       child: CarouselSlider(
                         options: CarouselOptions(
-                          height: 110.sp,
+                          height: 150.sp,
                           autoPlay: true,
                           initialPage: 10,
                           viewportFraction: 1,
@@ -525,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           ),
                                           clipBehavior: Clip.hardEdge,
                                           child: Container(
-                                            height: 110.sp,
+                                            height: 150.sp,
                                             width: double.infinity,
                                             child: ClipRRect(
                                               borderRadius:
@@ -565,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 return Builder(
                                   builder: (context) {
                                     return Container(
-                                      height: 120.sp,
+                                      height: 150.sp,
                                       width:
                                           MediaQuery.of(context).size.width *
                                           0.90,

@@ -330,12 +330,12 @@ class _HomeBottomNavigationState extends State<Homepage> {
       }
     } catch (e) {
       Navigator.pop(context); // Close the progress dialog
-      // Handle errors appropriately
-      print('Error during logout: $e');
-      // Show a snackbar or display an error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to log out. Please try again.')),
-      );
+      // // Handle errors appropriately
+      // print('Error during logout: $e');
+      // // Show a snackbar or display an error message
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Failed to log out. Please try again.')),
+      // );
     }
   }
 
